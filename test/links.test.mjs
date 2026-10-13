@@ -104,7 +104,7 @@ test('Recusas: http, IPs, localhost, portas, credenciais e outros esquemas', () 
 
 test('Modelos prontos: widgets do TradingView em pt-BR e válidos', () => {
   assert.ok(MODELOS.length >= 4);
-  for (const m of MODELOS) {
+  for (const m of MODELOS.filter((x) => x.url)) {
     const r = analisarLink(m.url);
     assert.equal(r.ok, true, m.nome);
     assert.match(m.url, /^https:\/\/s\.tradingview\.com\/embed-widget\/.+locale=br/);
@@ -112,12 +112,11 @@ test('Modelos prontos: widgets do TradingView em pt-BR e válidos', () => {
 });
 
 test('Modelos de cobre e alumínio em toneladas e cotação personalizada', () => {
-  const ids = MODELOS.map((m) => m.id);
-  assert.ok(ids.includes('cobre') && ids.includes('aluminio'));
-  const cobre = JSON.parse(decodeURIComponent(MODELOS.find((m) => m.id === 'cobre').url.split('#')[1]));
-  assert.deepEqual(cobre.symbols, [['Cobre (US$/lb)', 'FX:COPPER|1D']]);
+  const metais = MODELOS.filter((m) => m.caminho);
+  assert.ok(metais.some((m) => m.caminho === '/cotacoes?ativos=cobre'));
+  assert.ok(metais.some((m) => m.caminho === '/cotacoes?ativos=aluminio'));
   // Nenhum modelo usa dados de bolsa bloqueados nos widgets.
-  for (const m of MODELOS) assert.doesNotMatch(decodeURIComponent(m.url), /COMEX:|LME:/, m.nome);
+  for (const m of MODELOS.filter((x) => x.url)) assert.doesNotMatch(decodeURIComponent(m.url), /COMEX:|LME:/, m.nome);
   const r = modeloCotacao(' comex:ali1! ', 'Alumínio');
   assert.equal(r.ok, true);
   assert.equal(analisarLink(r.url).ok, true);

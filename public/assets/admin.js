@@ -530,7 +530,8 @@ for (const m of MODELOS) {
         class: 'botao pequeno',
         type: 'button',
         onclick: () => {
-          estado.tela.itens.push({ id: novoId(), tipo: 'site', nome: m.nome, recarregarMin: 30, pausado: false, paginas: [{ url: m.url, segundos: 30 }] });
+          const url = m.url || location.origin + m.caminho; // modelos próprios ficam neste site
+          estado.tela.itens.push({ id: novoId(), tipo: 'site', nome: m.nome, recarregarMin: 30, pausado: false, paginas: [{ url, segundos: 30 }] });
           mensagem($('msgItem'), `✓ ${m.nome} adicionado.`, 'ok');
           alterado();
           selecionar(estado.tela.itens.length - 1, 0);

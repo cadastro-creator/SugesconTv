@@ -29,6 +29,8 @@ function lerRegrasCabecalhos() {
     if (!/^\s/.test(linha)) {
       atual = { padrao: linha.trim(), cabecalhos: {} };
       regras.push(atual);
+    } else if (atual && linha.trim().startsWith('!')) {
+      atual.cabecalhos[linha.trim().slice(1).trim()] = null; // "! Nome" remove o cabeçalho
     } else if (atual) {
       const i = linha.indexOf(':');
       atual.cabecalhos[linha.slice(0, i).trim()] = linha.slice(i + 1).trim();
@@ -41,12 +43,16 @@ function cabecalhosPara(caminho, regras) {
   const res = {};
   for (const r of regras) {
     const re = new RegExp('^' + r.padrao.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
-    if (re.test(caminho)) Object.assign(res, r.cabecalhos);
+    if (!re.test(caminho)) continue;
+    for (const [k, v] of Object.entries(r.cabecalhos)) {
+      if (v === null) delete res[k];
+      else res[k] = v;
+    }
   }
   return res;
 }
 
-export function criarServidor({ senha = process.env.ADMIN_PASSWORD || 'teste', arquivoDados = null, kv } = {}) {
+export function criarServidor({ senha = process.env.ADMIN_PASSWORD || 'teste', arquivoDados = null, kv, buscar } = {}) {
   const env = { ADMIN_PASSWORD: senha, PAINEL_KV: kv || criarKvMemoria(arquivoDados) };
   const regras = lerRegrasCabecalhos();
 
@@ -61,7 +67,7 @@ export function criarServidor({ senha = process.env.ADMIN_PASSWORD || 'teste', a
         for (const [k, v] of Object.entries(req.headers)) headers.set(k, Array.isArray(v) ? v.join(', ') : v);
         headers.set('cf-connecting-ip', req.socket.remoteAddress || 'local');
         const pedido = new Request(url, { method: req.method, headers, body: corpo });
-        const resposta = await tratar(pedido, env);
+        const resposta = await tratar(pedido, env, { buscar });
         res.writeHead(resposta.status, Object.fromEntries(resposta.headers));
         res.end(Buffer.from(await resposta.arrayBuffer()));
         return;

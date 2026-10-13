@@ -2,6 +2,7 @@
 // e também no servidor local de desenvolvimento/testes.
 import { analisarLink, nomeSugerido, validarEndereco } from '../public/assets/links.js';
 import { verificarExibicao } from './verificar.js';
+import { lerLista, obterCotacoes } from './cotacoes.js';
 
 const COOKIE = 'painel_sessao';
 const SESSAO_SEGUNDOS = 12 * 60 * 60;
@@ -167,6 +168,36 @@ export async function tratar(req, env, opcoes = {}) {
   const kv = env.PAINEL_KV;
 
   if (!kv) return falha(500, 'Armazenamento não configurado: ligue um namespace KV com o nome PAINEL_KV ao projeto.');
+
+  // Cotações de metais e dólar (público; guardadas por 10 min no cache do Cloudflare).
+  if (caminho === '/api/cotacoes') {
+    if (metodo !== 'GET') return falha(405, 'Método não permitido.');
+    const ids = lerLista(url.searchParams.get('ativos'));
+    const chaveKv = 'cotacoes:' + ids.join(',');
+    const cache = typeof caches !== 'undefined' ? caches.default : null;
+    const chaveCache = new Request(url.origin + '/api/cotacoes?ativos=' + ids.join(','));
+    if (cache) {
+      const guardada = await cache.match(chaveCache);
+      if (guardada) return guardada;
+    }
+    let dados;
+    try {
+      dados = await obterCotacoes(ids, opcoes.buscar);
+      // Guarda uma cópia de segurança no máximo a cada 30 min (poupa gravações do plano gratuito).
+      const anterior = await kv.get(chaveKv, 'json');
+      if (!anterior || Date.now() - Date.parse(anterior.atualizadoEm) > 30 * 60000) {
+        await kv.put(chaveKv, JSON.stringify(dados));
+      }
+    } catch {
+      // Fonte fora do ar: usa a última cotação boa.
+      dados = await kv.get(chaveKv, 'json');
+      if (!dados) return falha(502, 'Cotações indisponíveis no momento. Tentando de novo em instantes.');
+      dados.atrasado = true;
+    }
+    const resp = json(dados, 200, { 'Cache-Control': dados.atrasado ? 'no-store' : 'public, max-age=600' });
+    if (cache && !dados.atrasado) await cache.put(chaveCache, resp.clone());
+    return resp;
+  }
 
   // Leitura pública da TV (somente leitura, sem login).
   const tv = caminho.match(/^\/api\/tv\/([A-Za-z0-9]+)$/);

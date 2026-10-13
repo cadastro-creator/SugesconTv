@@ -194,12 +194,11 @@ export const MODELOS = [
   { id: 'euro', nome: 'Euro (EUR/BRL)', url: cotacao('FX_IDC:EURBRL|1D') },
   { id: 'ibovespa', nome: 'Ibovespa', url: cotacao('BMFBOVESPA:IBOV|1D') },
   { id: 'bitcoin', nome: 'Bitcoin (BTC/BRL)', url: cotacao('BINANCE:BTCBRL|1D') },
-  // Dados de bolsa (COMEX/LME) não são liberados nos widgets; usamos CFDs de corretoras,
-  // que acompanham o preço de referência e aparecem incorporados.
-  // Alumínio: CFD da Capital.com cotado em dólares por tonelada (referência LME).
-  { id: 'aluminio', nome: 'Alumínio (US$/t)', url: cotacao('CAPITALCOM:ALUMINUM|1D', 'Alumínio (US$/t)') },
-  // Cobre: o mercado cota em dólares por libra (1 tonelada = 2.204,62 libras).
-  { id: 'cobre', nome: 'Cobre (US$/lb)', url: cotacao('FX:COPPER|1D', 'Cobre (US$/lb)') },
+  // Metais em tonelada: tela própria do SugesconTv (/cotacoes), com US$/t e R$/kg.
+  { id: 'metais', nome: 'Cobre e Alumínio (US$/t e R$/kg)', caminho: '/cotacoes?ativos=cobre,aluminio' },
+  { id: 'cobre', nome: 'Cobre (US$/t e R$/kg)', caminho: '/cotacoes?ativos=cobre' },
+  { id: 'aluminio', nome: 'Alumínio (US$/t e R$/kg)', caminho: '/cotacoes?ativos=aluminio' },
+  { id: 'metais-dolar', nome: 'Cobre, Alumínio e Dólar', caminho: '/cotacoes?ativos=cobre,aluminio,dolar' },
   {
     id: 'cotacoes',
     nome: 'Quadro de cotações',
@@ -212,7 +211,6 @@ export const MODELOS = [
             { name: 'FX_IDC:EURBRL', displayName: 'Euro' },
             { name: 'BMFBOVESPA:IBOV', displayName: 'Ibovespa' },
             { name: 'BINANCE:BTCBRL', displayName: 'Bitcoin' },
-            { name: 'FX:COPPER', displayName: 'Cobre (US$/lb)' },
             { name: 'CAPITALCOM:ALUMINUM', displayName: 'Alumínio (US$/t)' }
           ]
         }

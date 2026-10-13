@@ -4,9 +4,10 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { criarServidor } from './servidor-local.mjs';
+import { buscarFalso } from './cotacoes-falsas.mjs';
 
 const SENHA = 'senha-e2e';
-const servidor = criarServidor({ senha: SENHA });
+const servidor = criarServidor({ senha: SENHA, buscar: buscarFalso() });
 await new Promise((r) => servidor.listen(0, '127.0.0.1', r));
 const BASE = `http://localhost:${servidor.address().port}`;
 
@@ -91,7 +92,7 @@ try {
   await admin.waitForSelector('.item[data-item="0"] .pagina:nth-child(2)', { timeout: 15000 });
   passo('página adicionada ao item');
 
-  await admin.locator('.modelos button', { hasText: 'Dólar' }).click();
+  await admin.locator('.modelos button', { hasText: 'Dólar (USD/BRL)' }).click();
   await admin.waitForSelector('.item[data-item="1"]');
   await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
   assert.ok(await admin.locator('#salvarAgora').isHidden());
@@ -228,6 +229,19 @@ try {
   await inexistente.goto(`${BASE}/tv?tela=ZZZZZZ`);
   await inexistente.waitForSelector('#mensagem:has-text("não encontrada")');
   passo('código inexistente mostra aviso');
+
+  const cot = await contexto.newPage();
+  vigiar(cot, 'cotacoes');
+  const respCot = await cot.goto(`${BASE}/cotacoes?ativos=cobre,aluminio,dolar`);
+  assert.match(respCot.headers()['content-security-policy'], /frame-ancestors 'self'/);
+  assert.doesNotMatch(respCot.headers()['content-security-policy'], /frame-ancestors 'none'/);
+  await cot.waitForSelector('.cot-linha:nth-child(3) svg path');
+  const textoCot = await cot.locator('#ativos').innerText();
+  assert.match(textoCot, /Cobre \(US\$\/t\)/);
+  assert.match(textoCot, /US\$ 14\.771/);
+  assert.match(textoCot, /R\$ 81,24/);
+  if (process.env.CAPTURAS) await cot.screenshot({ path: process.env.CAPTURAS + '/cotacoes.png' });
+  passo('tela de cotações: cobre e alumínio em US$/t e R$/kg');
 
   // Ignora erros de rede do teste offline.
   const reais = problemas.filter((p) => !/ERR_INTERNET_DISCONNECTED|net::ERR/.test(p));
