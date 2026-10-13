@@ -1,5 +1,5 @@
 /* Usado pela TV e pela prévia do painel. */
-html, body.pnt-tv {
+html.pnt-tv, body.pnt-tv {
   margin: 0;
   padding: 0;
   width: 100%;

@@ -1,8 +1,8 @@
 {
-  "name": "painel-na-tv",
+  "name": "sugescontv",
   "private": true,
   "type": "module",
-  "description": "Painel na TV: dashboards em sequência nas TVs (gestão à vista).",
+  "description": "SugesconTv: dashboards em sequência nas TVs (gestão à vista).",
   "scripts": {
     "dev": "node scripts/servidor-local.mjs",
     "test": "node --test test/*.test.mjs",

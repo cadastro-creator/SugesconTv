@@ -91,6 +91,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === normalize(process.argv
   const porta = Number(process.argv[2]) || 8788;
   if (!process.env.ADMIN_PASSWORD) console.log('Aviso: ADMIN_PASSWORD não definida; usando a senha "teste".');
   criarServidor({ arquivoDados: '.dev-dados.json' }).listen(porta, () => {
-    console.log(`Painel na TV em http://localhost:${porta}/admin`);
+    console.log(`SugesconTv em http://localhost:${porta}/admin`);
   });
 }

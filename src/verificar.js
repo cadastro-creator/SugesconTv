@@ -57,7 +57,7 @@ export async function verificarExibicao(url, origemPainel, buscar = fetch) {
         method: 'GET',
         redirect: 'manual',
         signal: controle.signal,
-        headers: { Accept: 'text/html', 'User-Agent': 'Mozilla/5.0 (compatible; PainelNaTV/1.0)' }
+        headers: { Accept: 'text/html', 'User-Agent': 'Mozilla/5.0 (compatible; SugesconTv/1.0)' }
       });
       // Só os cabeçalhos interessam: descarta o corpo sem ler.
       try {

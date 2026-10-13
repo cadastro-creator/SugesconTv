@@ -1,0 +1,147 @@
+:root {
+  --fundo: #f3f5f8;
+  --cartao: #fff;
+  --texto: #1d2733;
+  --suave: #5b6878;
+  --borda: #d8dee6;
+  --primaria: #1764d6;
+  --primaria-escura: #0f4fae;
+  --erro: #b42318;
+  --ok: #1a7f37;
+  --aviso: #9a6700;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--texto);
+  background: var(--fundo);
+}
+[hidden] { display: none !important; }
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #0f1c2e;
+  color: #fff;
+}
+.topo h1 { font-size: 20px; margin: 0; }
+main { max-width: 1400px; margin: 0 auto; padding: 16px 20px 40px; }
+h2 { font-size: 22px; margin: 0; }
+h3 { font-size: 17px; margin: 0 0 10px; }
+.centro { display: flex; justify-content: center; padding-top: 60px; }
+.cartao {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.login { width: 340px; display: flex; flex-direction: column; gap: 10px; }
+input[type="text"], input[type="url"], input[type="password"], input[type="number"] {
+  font: inherit;
+  padding: 9px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 7px;
+  background: #fff;
+  color: inherit;
+  min-width: 0;
+}
+input:focus, button:focus-visible { outline: 3px solid #9cc1f7; outline-offset: 1px; }
+.botao {
+  font: inherit;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--borda);
+  background: #fff;
+  color: var(--texto);
+  white-space: nowrap;
+}
+.botao:hover { background: #eef2f7; }
+.botao:disabled { opacity: 0.45; cursor: default; }
+.botao.principal { background: var(--primaria); border-color: var(--primaria); color: #fff; }
+.botao.principal:hover { background: var(--primaria-escura); }
+.botao.perigo { color: var(--erro); }
+.botao.discreto { background: transparent; border-color: transparent; color: inherit; }
+.topo .botao.discreto:hover { background: rgba(255, 255, 255, 0.12); }
+.botao.pequeno { padding: 5px 10px; font-size: 14px; }
+.botao.icone { padding: 5px 9px; font-size: 15px; }
+.botao.ativo { background: #dbe8fb; border-color: var(--primaria); }
+.barra { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.barra h2 { flex: 1; min-width: 160px; }
+.em-linha { display: flex; gap: 8px; flex-wrap: wrap; }
+.em-linha input { flex: 1; min-width: 220px; }
+.dica { color: var(--suave); font-size: 14px; margin: 6px 0 14px; }
+.msg { min-height: 1.2em; margin: 8px 0 0; font-size: 14px; }
+.msg.erro { color: var(--erro); }
+.msg.ok { color: var(--ok); }
+.msg.aviso { color: var(--aviso); }
+.status { font-size: 14px; color: var(--suave); }
+.status.erro { color: var(--erro); }
+
+/* Lista de telas */
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }
+.tela { display: flex; gap: 14px; margin: 0; }
+.tela .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.tela h3 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.codigo { font: bold 20px/1 ui-monospace, Consolas, monospace; letter-spacing: 2px; }
+.link-tv { font-size: 13px; overflow-wrap: anywhere; color: var(--primaria); }
+.acoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.qr svg { display: block; border: 1px solid var(--borda); border-radius: 6px; }
+.vazio { color: var(--suave); padding: 20px; text-align: center; }
+
+/* Editor */
+.editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1000px) { .editor { grid-template-columns: 1fr; } }
+.previa { position: sticky; top: 12px; }
+.item.pausado { opacity: 0.6; }
+.item.selecionado { border-color: var(--primaria); box-shadow: 0 0 0 2px #cfe0fb; }
+.item-topo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.item-topo .nome { flex: 1; min-width: 140px; font-weight: 600; }
+.etiqueta {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #e8edf3;
+  color: #344256;
+}
+.etiqueta.powerbi { background: #fff1c2; color: #6b4c00; }
+.etiqueta.looker { background: #dbe8fb; color: #0f3f86; }
+.etiqueta.planilha { background: #d6f2df; color: #145c2b; }
+.item-opcoes { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 10px 0; font-size: 14px; color: var(--suave); }
+.item-opcoes input, .pagina input { width: 74px; }
+.paginas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pagina { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.pagina .url { flex: 1; min-width: 120px; color: var(--suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pagina .botao.ativo { font-weight: 600; }
+.adicionar-pagina { margin-top: 10px; }
+.adicionar-pagina input { font-size: 14px; }
+details { margin-top: 10px; font-size: 14px; }
+summary { cursor: pointer; color: var(--primaria); }
+.ajuda { margin: 8px 0 0; padding-left: 20px; }
+.ajuda li { margin-bottom: 6px; }
+.modelos { margin-top: 14px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--suave); }
+.modelos #modelos { display: contents; }
+
+/* Prévia */
+.previa-barra { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.alternar { display: flex; gap: 4px; }
+.moldura {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 6px solid #222;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+.moldura.em-pe { aspect-ratio: 9 / 16; max-width: 340px; }
+.moldura .pnt-palco { width: 1920px; height: 1080px; }
+.moldura.em-pe .pnt-palco { width: 1080px; height: 1920px; }
+.previa-vazia { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; color: #aaa; text-align: center; padding: 20px; }
+.legenda { font-size: 14px; color: var(--suave); min-height: 1.4em; margin: 8px 0 0; }

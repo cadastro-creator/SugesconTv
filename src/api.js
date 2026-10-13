@@ -1,4 +1,4 @@
-// API do Painel na TV. Roda como Cloudflare Pages Function (functions/api/[[caminho]].js)
+// API do SugesconTv. Roda como Cloudflare Pages Function (functions/api/[[caminho]].js)
 // e também no servidor local de desenvolvimento/testes.
 import { analisarLink, nomeSugerido, validarEndereco } from '../public/assets/links.js';
 import { verificarExibicao } from './verificar.js';

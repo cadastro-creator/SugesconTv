@@ -1,4 +1,4 @@
-/* Painel na TV - página /tv?tela=CODIGO (JavaScript ES5 para TVs antigas). */
+/* SugesconTv - página /tv?tela=CODIGO (JavaScript ES5 para TVs antigas). */
 (function () {
   'use strict';
 
@@ -126,7 +126,7 @@
       return;
     }
 
-    var chaveCache = 'painel-na-tv:' + codigo;
+    var chaveCache = 'sugescontv:' + codigo;
     var ultimaLista = null;
     var naoEncontrada = false;
     var player = new window.PainelPlayer($('palco'), {
@@ -146,7 +146,7 @@
         return;
       }
       ultimaLista = texto;
-      if (dados && dados.nome) document.title = dados.nome + ' - Painel na TV';
+      if (dados && dados.nome) document.title = dados.nome + ' - SugesconTv';
       player.definirLista((dados && dados.itens) || []);
     }
 

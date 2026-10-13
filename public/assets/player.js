@@ -1,4 +1,4 @@
-/* Painel na TV - reprodutor de páginas em sequência.
+/* SugesconTv - reprodutor de páginas em sequência.
  * JavaScript ES5 (funciona em navegadores de TV antigos). Usado pela TV e pela prévia do painel.
  *
  * var p = new PainelPlayer(elemento, opcoes);

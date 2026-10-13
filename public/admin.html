@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>SugesconTv – gestão</title>
+<link rel="stylesheet" href="/assets/tv.css">
+<link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body>
+<header class="topo">
+  <h1>📺 SugesconTv</h1>
+  <button id="sair" class="botao discreto" type="button" hidden>Sair</button>
+</header>
+
+<main>
+  <section id="telaCarregando" class="centro"><p>Carregando…</p></section>
+
+  <section id="telaLogin" class="centro" hidden>
+    <form id="formLogin" class="cartao login">
+      <h2>Entrar</h2>
+      <label for="senha">Senha do painel</label>
+      <input id="senha" type="password" autocomplete="current-password" required>
+      <button class="botao principal" type="submit">Entrar</button>
+      <p id="erroLogin" class="msg erro" role="alert"></p>
+    </form>
+  </section>
+
+  <section id="telaLista" hidden>
+    <div class="barra">
+      <h2>Suas telas</h2>
+      <form id="formNova" class="em-linha">
+        <input id="nomeNova" type="text" maxlength="80" placeholder="Nome da nova tela (ex.: Recepção)" required>
+        <button class="botao principal" type="submit">Criar tela</button>
+      </form>
+    </div>
+    <p class="dica">Uma <strong>tela</strong> é uma TV ou um grupo de TVs que mostram a mesma sequência. Abra o link da tela no navegador da TV (ou no app) e pronto.</p>
+    <p id="msgLista" class="msg erro" role="alert"></p>
+    <div id="listaTelas" class="grade"></div>
+  </section>
+
+  <section id="telaEditor" hidden>
+    <div class="barra">
+      <button id="voltar" class="botao discreto" type="button">← Telas</button>
+      <h2 id="editorNome"></h2>
+      <span id="status" class="status" aria-live="polite"></span>
+    </div>
+
+    <div class="editor">
+      <div class="coluna">
+        <div id="itens"></div>
+
+        <div class="cartao adicionar">
+          <h3>Adicionar dashboard</h3>
+          <form id="formItem" class="em-linha">
+            <input id="linkItem" type="url" placeholder="Cole aqui o link (Power BI, Looker Studio, Planilha ou site)" required>
+            <button class="botao principal" type="submit">Adicionar dashboard</button>
+          </form>
+          <p id="msgItem" class="msg" role="alert"></p>
+          <details>
+            <summary>Que links funcionam?</summary>
+            <ul class="ajuda">
+              <li><strong>Power BI:</strong> no relatório, Arquivo → Incorporar relatório → <em>Publicar na Web (público)</em>. Copie o link (app.powerbi.com/view?r=…).</li>
+              <li><strong>Looker Studio:</strong> Arquivo → Incorporar relatório → marque <em>Ativar incorporação</em>. Compartilhe como “Qualquer pessoa com o link pode ver” e copie o endereço da barra do navegador.</li>
+              <li><strong>Google Planilhas:</strong> Arquivo → Compartilhar → <em>Publicar na Web</em> → Publicar. Copie o link gerado.</li>
+              <li><strong>Sites:</strong> qualquer endereço https:// que permita exibição dentro de outro site.</li>
+            </ul>
+          </details>
+          <div class="modelos">
+            <span>Modelos prontos:</span>
+            <span id="modelos"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="coluna previa">
+        <div class="previa-barra">
+          <div class="alternar" role="group" aria-label="Formato da TV">
+            <button id="formatoDeitada" class="botao pequeno ativo" type="button">TV deitada 16:9</button>
+            <button id="formatoEmPe" class="botao pequeno" type="button">TV em pé 9:16</button>
+          </div>
+          <button id="previaSequencia" class="botao pequeno principal" type="button">▶ Prévia da sequência</button>
+        </div>
+        <div id="previaMoldura" class="moldura">
+          <div id="previaPalco" class="pnt-palco"></div>
+          <p id="previaVazia" class="previa-vazia">Selecione uma página para ver como fica na TV.</p>
+        </div>
+        <p id="previaLegenda" class="legenda"></p>
+        <p class="dica">A prévia mostra a página exatamente como na TV. A “Prévia da sequência” roda a tela inteira com 5 s por página.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/assets/player.js"></script>
+<script type="module" src="/assets/admin.js"></script>
+</body>
+</html>
