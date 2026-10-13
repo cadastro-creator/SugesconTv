@@ -2,7 +2,13 @@
 (function () {
   'use strict';
 
-  var CONSULTA_MS = 60000;
+  var CONSULTA_MS = 30000; // busca mudanças a cada 30 s
+  var VERSAO_MS = 5 * 60000; // confere se o site foi atualizado
+  var INICIO = new Date().getTime();
+
+  function reiniciar() {
+    window.location.reload();
+  }
 
   function parametro(nome) {
     var m = new RegExp('[?&]' + nome + '=([^&#]*)').exec(window.location.search);
@@ -151,6 +157,46 @@
       player.definirLista((dados && dados.itens) || []);
     }
 
+    var reinicioBase = null;
+
+    // Site atualizado (novo deploy): os arquivos da TV mudam de versão e a página recarrega.
+    var versaoBase = null;
+    function conferirVersao() {
+      var arquivos = ['/assets/tv.js', '/assets/player.js', '/tv'];
+      var partes = [];
+      var faltam = arquivos.length;
+      function pronto() {
+        var v = partes.join('|');
+        if (!v.replace(/\|/g, '')) return; // servidor sem ETag/Last-Modified
+        if (versaoBase === null) versaoBase = v;
+        else if (v !== versaoBase) reiniciar();
+      }
+      for (var i = 0; i < arquivos.length; i++) {
+        (function (i) {
+          var x = new XMLHttpRequest();
+          x.open('HEAD', arquivos[i] + '?v=' + new Date().getTime(), true);
+          x.timeout = 15000;
+          x.onreadystatechange = function () {
+            if (x.readyState !== 4) return;
+            if (x.status === 200) partes[i] = x.getResponseHeader('ETag') || x.getResponseHeader('Last-Modified') || '';
+            else partes[i] = null;
+            faltam--;
+            if (faltam === 0) {
+              for (var j = 0; j < partes.length; j++) if (partes[j] === null) return; // falha: tenta depois
+              pronto();
+            }
+          };
+          x.send();
+        })(i);
+      }
+    }
+
+    // Reinício diário às 4h (limpa a memória da TV), se estiver aberta há mais de 12 h.
+    function conferirReinicioDiario() {
+      var d = new Date();
+      if (d.getHours() === 4 && d.getTime() - INICIO > 12 * 3600000 && !semConexao()) reiniciar();
+    }
+
     function buscar() {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', '/api/tv/' + codigo + '?t=' + new Date().getTime(), true);
@@ -160,6 +206,14 @@
         if (xhr.status === 200) {
           falhaRede = false;
           naoEncontrada = false;
+          // "Reiniciar TVs" no painel: recarrega quando o pedido muda.
+          var pedido = (/"reiniciarEm":"([^"]*)"/.exec(xhr.responseText) || [])[1] || '';
+          if (reinicioBase === null) reinicioBase = pedido;
+          else if (pedido !== reinicioBase) {
+            gravarCache(chaveCache, xhr.responseText);
+            reiniciar();
+            return;
+          }
           gravarCache(chaveCache, xhr.responseText);
           aplicar(xhr.responseText);
         } else if (xhr.status === 404) {
@@ -180,6 +234,9 @@
     player.iniciar();
     buscar();
     setInterval(buscar, CONSULTA_MS);
+    conferirVersao();
+    setInterval(conferirVersao, VERSAO_MS);
+    setInterval(conferirReinicioDiario, 10 * 60000);
     window.addEventListener('online', function () {
       atualizarAvisoConexao();
       buscar();

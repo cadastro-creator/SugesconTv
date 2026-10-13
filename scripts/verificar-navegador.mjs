@@ -93,7 +93,14 @@ try {
 
   await admin.locator('.modelos button', { hasText: 'Dólar' }).click();
   await admin.waitForSelector('.item[data-item="1"]');
-  await admin.waitForSelector('#status:has-text("Salvo")', { timeout: 15000 });
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  assert.ok(await admin.locator('#salvarAgora').isHidden());
+  // Digitar os segundos salva sozinho, mesmo sem sair do campo.
+  await admin.locator('.item[data-item="0"] .pagina input').first().fill('45');
+  await admin.waitForSelector('#status.pendente');
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  const salvo = await admin.evaluate(async (c) => (await (await fetch('/api/telas/' + c)).json()).itens[0].paginas[0].segundos, codigo);
+  assert.equal(salvo, 45);
   passo('modelo pronto adicionado e salvo automaticamente');
 
   await admin.click('#formatoEmPe');
@@ -184,6 +191,17 @@ try {
   assert.equal(seqEco.length, 4, 'modo econômico também gira');
   await economica.close();
   passo('?quadros=2 limita a memória e continua girando');
+
+  // "Reiniciar TVs" no painel: a TV recarrega a página na próxima consulta (até 1 min).
+  await tv.evaluate(() => (window.__antesDoReinicio = true));
+  await admin.click('.tela .botao.principal');
+  await admin.waitForSelector('#telaEditor:not([hidden])');
+  admin.once('dialog', (d) => d.accept());
+  await admin.click('#reiniciarTvs');
+  await admin.waitForSelector('#status:has-text("reiniciam")');
+  await tv.waitForFunction(() => !window.__antesDoReinicio, null, { timeout: 75000 });
+  await tv.waitForSelector('iframe.pnt-visivel');
+  passo('botão "Reiniciar TVs" recarrega a TV');
 
   await contexto.setOffline(true);
   await tv.waitForSelector('#semConexao:not(.pnt-oculto)');

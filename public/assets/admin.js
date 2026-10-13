@@ -21,7 +21,8 @@ const estado = {
   emPe: false,
   sequencia: false,
   timerSalvar: null,
-  salvando: null
+  salvando: null,
+  sujo: false
 };
 
 // ---------- utilidades ----------
@@ -210,7 +211,7 @@ async function abrirEditor(codigo) {
   history.replaceState(null, '', '#tela=' + codigo);
   estado.sel = estado.tela.itens.length ? { item: 0, pagina: 0 } : null;
   $('editorNome').textContent = estado.tela.nome;
-  status('');
+  status('✓ Tudo salvo', 'salvo');
   mostrar('telaEditor');
   desenharItens();
   atualizarPrevia();
@@ -218,31 +219,65 @@ async function abrirEditor(codigo) {
 
 $('voltar').addEventListener('click', () => abrirLista());
 
-function status(texto, erro = false) {
+$('reiniciarTvs').addEventListener('click', async () => {
+  if (!confirm('Recarregar a página em todas as TVs desta tela? Elas reiniciam em até 1 minuto.')) return;
+  await salvarAgora();
+  try {
+    await api('PUT', '/api/telas/' + estado.tela.codigo, { reiniciar: true });
+    status('↻ Pedido enviado: as TVs reiniciam em até 1 minuto.', 'salvo');
+  } catch (err) {
+    status('✕ Não foi possível reiniciar: ' + err.message, 'erro');
+  }
+});
+
+// Situação do salvamento, sempre visível no topo do editor.
+function status(texto, tipo = '') {
   $('status').textContent = texto;
-  $('status').className = 'status' + (erro ? ' erro' : '');
+  $('status').className = 'status ' + tipo;
+  $('salvarAgora').hidden = !(tipo === 'pendente' || tipo === 'erro');
+}
+
+function horaAgora() {
+  return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 function alterado() {
-  status('Alterações não salvas…');
+  estado.sujo = true;
+  status('● Alterações ainda não salvas…', 'pendente');
   clearTimeout(estado.timerSalvar);
-  estado.timerSalvar = setTimeout(salvarAgora, 900);
+  estado.timerSalvar = setTimeout(salvarAgora, 800);
 }
 
+// Salva uma vez por vez; se algo mudou durante o envio, salva de novo em seguida.
 async function salvarAgora() {
-  if (!estado.timerSalvar || !estado.tela) return estado.salvando;
   clearTimeout(estado.timerSalvar);
   estado.timerSalvar = null;
+  while (estado.salvando) await estado.salvando;
+  if (!estado.sujo || !estado.tela) return true;
+  estado.sujo = false;
   const { codigo, itens } = estado.tela;
-  status('Salvando…');
+  status('⟳ Salvando…', 'pendente');
+  let ok = true;
   estado.salvando = api('PUT', '/api/telas/' + codigo, { itens })
-    .then(() => status('✓ Salvo. As TVs atualizam em até 1 minuto.'))
-    .catch((err) => status('Não foi possível salvar: ' + err.message, true));
-  return estado.salvando;
+    .then(() => {
+      if (!estado.sujo) status(`✓ Tudo salvo às ${horaAgora()} · as TVs mostram em até 1 minuto`, 'salvo');
+    })
+    .catch((err) => {
+      ok = false;
+      estado.sujo = true;
+      status('✕ Não foi salvo: ' + err.message + ' Tentando de novo…', 'erro');
+      estado.timerSalvar = setTimeout(salvarAgora, 10000);
+    });
+  await estado.salvando;
+  estado.salvando = null;
+  if (ok && estado.sujo) return salvarAgora();
+  return ok;
 }
 
+$('salvarAgora').addEventListener('click', () => salvarAgora());
+
 window.addEventListener('beforeunload', (e) => {
-  if (estado.timerSalvar) {
+  if (estado.sujo || estado.salvando) {
     salvarAgora();
     e.preventDefault();
   }
@@ -358,11 +393,12 @@ function desenharItens() {
               min: 1,
               max: 1440,
               value: item.recarregarMin,
-              onchange: (e) => {
+              oninput: (e) => {
+                if (e.target.value === '') return;
                 item.recarregarMin = numero(e.target.value, 10, 1, 1440);
-                e.target.value = item.recarregarMin;
                 alterado();
-              }
+              },
+              onchange: (e) => (e.target.value = item.recarregarMin)
             }),
             ' min'
           )
@@ -393,11 +429,12 @@ function desenharItens() {
                   max: 3600,
                   value: pg.segundos,
                   'aria-label': `Segundos na tela da página ${j + 1}`,
-                  onchange: (e) => {
+                  oninput: (e) => {
+                    if (e.target.value === '') return;
                     pg.segundos = numero(e.target.value, 30, 5, 3600);
-                    e.target.value = pg.segundos;
                     alterado();
-                  }
+                  },
+                  onchange: (e) => (e.target.value = pg.segundos)
                 }),
                 ' s'
               ),

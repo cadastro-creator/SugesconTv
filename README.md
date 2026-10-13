@@ -38,7 +38,9 @@ Pronto: o painel fica em `https://<seu-projeto>.pages.dev/admin`. Cada commit no
 3. No editor, cole o link do relatório em **Adicionar dashboard**. O sistema reconhece o tipo e converte para o formato de exibição.
 4. Para mostrar outras páginas do mesmo relatório, use **Adicionar página** dentro do item.
 5. Ajuste os **segundos** de cada página (padrão 30 s) e **recarregar a cada X minutos** (padrão 10).
-6. Confira na **prévia** (16:9 ou 9:16) e em **Prévia da sequência** (5 s por página). Tudo é salvo sozinho; as TVs atualizam em até 1 minuto.
+6. Confira na **prévia** (16:9 ou 9:16) e em **Prévia da sequência** (5 s por página).
+7. **Salvamento:** tudo é salvo sozinho. O selo no topo mostra a situação: amarelo = salvando, verde = “Tudo salvo às HH:MM”, vermelho = não salvou (tenta de novo sozinho; há também o botão **Salvar agora**). As TVs buscam mudanças a cada 30 s e aplicam ao fim da página que está na tela (até 1 minuto).
+8. **Reiniciar TVs:** botão no topo do editor que recarrega a página em todas as TVs daquela tela (em até 30 s). As TVs também recarregam sozinhas quando o site é atualizado e todo dia às 4h.
 
 Na lista de telas aparecem o **código**, o **link da TV** (`/tv?tela=CODIGO`) e um **QR code** desse link.
 
@@ -96,6 +98,7 @@ As páginas ficam **carregadas em segundo plano**: na hora de aparecer, só troc
 | **Página em branco ou erro na TV** | Confira na prévia do painel. Páginas que não carregam em 25 s são puladas. |
 | **“sem conexão” no canto da TV** | A TV perdeu a internet: continua mostrando a última página e volta sozinha. |
 | **Painel diz que falta `PAINEL_KV` ou `ADMIN_PASSWORD`** | Refaça os passos 4 e 5 da seção 1 e publique de novo. |
+| **TV não mostra a mudança** | Confira o selo verde “Tudo salvo” no painel e espere até 1 minuto. Se precisar, use **Reiniciar TVs**. |
 | **“Muitas tentativas”** | São 10 tentativas de senha a cada 15 min por endereço. Aguarde. |
 | **App não abre ao ligar a TV** | Escolha o SugesconTv como **tela inicial** (HOME). Alguns aparelhos bloqueiam abrir apps sozinhos. |
 

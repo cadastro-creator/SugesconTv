@@ -3,6 +3,7 @@
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tratar } from '../src/api.js';
@@ -77,6 +78,7 @@ export function criarServidor({ senha = process.env.ADMIN_PASSWORD || 'teste', a
       const conteudo = await readFile(arquivo);
       res.writeHead(200, {
         'Content-Type': TIPOS[extname(arquivo)] || 'application/octet-stream',
+        ETag: '"' + createHash('sha1').update(conteudo).digest('hex').slice(0, 16) + '"',
         ...cabecalhosPara(url.pathname, regras)
       });
       res.end(conteudo);

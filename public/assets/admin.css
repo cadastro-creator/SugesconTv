@@ -78,8 +78,11 @@ input:focus, button:focus-visible { outline: 3px solid #9cc1f7; outline-offset: 
 .msg.erro { color: var(--erro); }
 .msg.ok { color: var(--ok); }
 .msg.aviso { color: var(--aviso); }
-.status { font-size: 14px; color: var(--suave); }
-.status.erro { color: var(--erro); }
+.status { font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: #e8edf3; color: var(--suave); }
+.status:empty { display: none; }
+.status.salvo { background: #dcf3e3; color: var(--ok); }
+.status.pendente { background: #fff1c2; color: var(--aviso); }
+.status.erro { background: #fde2df; color: var(--erro); }
 
 /* Lista de telas */
 .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }

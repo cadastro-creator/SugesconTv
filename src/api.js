@@ -174,7 +174,13 @@ export async function tratar(req, env, opcoes = {}) {
     if (metodo !== 'GET') return falha(405, 'Método não permitido.');
     const tela = await lerTela(kv, tv[1].toUpperCase());
     if (!tela) return falha(404, 'Tela não encontrada.');
-    return json({ codigo: tela.codigo, nome: tela.nome, itens: tela.itens, atualizadoEm: tela.atualizadoEm });
+    return json({
+      codigo: tela.codigo,
+      nome: tela.nome,
+      itens: tela.itens,
+      atualizadoEm: tela.atualizadoEm,
+      reiniciarEm: tela.reiniciarEm || null
+    });
   }
 
   const senha = env.ADMIN_PASSWORD;
@@ -248,6 +254,8 @@ export async function tratar(req, env, opcoes = {}) {
       const corpo = await lerJson(req);
       if (!corpo) return falha(400, 'Dados inválidos.');
       if (corpo.nome !== undefined) tela.nome = limparNome(corpo.nome, tela.nome);
+      // Pedido para as TVs desta tela recarregarem a página (aplicado na próxima consulta).
+      if (corpo.reiniciar === true) tela.reiniciarEm = new Date().toISOString();
       if (corpo.itens !== undefined) {
         try {
           tela.itens = validarItens(corpo.itens);
