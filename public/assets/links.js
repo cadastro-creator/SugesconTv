@@ -178,11 +178,12 @@ function cotacao(simbolo, nome) {
   });
 }
 
-// Cotação de qualquer símbolo do TradingView (ex.: COMEX:ALI1!), para o campo "Outra cotação".
+// Cotação de qualquer símbolo do TradingView (ex.: CAPITALCOM:ALUMINUM), para o campo "Outra cotação".
+// Símbolos de bolsa (COMEX, LME, B3 futuros…) costumam aparecer como "só disponível no TradingView".
 export function modeloCotacao(simbolo, nome) {
   const s = String(simbolo || '').trim().toUpperCase();
   if (!/^[A-Z0-9_.:!*\/+\-]{2,60}$/.test(s)) {
-    return erro('Digite o símbolo como aparece no TradingView, por exemplo COMEX:ALI1! ou FX_IDC:USDBRL.');
+    return erro('Digite o símbolo como aparece no TradingView, por exemplo CAPITALCOM:ALUMINUM ou FX_IDC:USDBRL.');
   }
   const titulo = String(nome || '').trim().slice(0, 60) || s;
   return { ok: true, tipo: 'site', nome: titulo, url: cotacao(s.includes('|') ? s : s + '|1D', titulo) };
@@ -193,10 +194,12 @@ export const MODELOS = [
   { id: 'euro', nome: 'Euro (EUR/BRL)', url: cotacao('FX_IDC:EURBRL|1D') },
   { id: 'ibovespa', nome: 'Ibovespa', url: cotacao('BMFBOVESPA:IBOV|1D') },
   { id: 'bitcoin', nome: 'Bitcoin (BTC/BRL)', url: cotacao('BINANCE:BTCBRL|1D') },
-  // Alumínio: contrato da COMEX cotado em dólares por tonelada métrica.
-  { id: 'aluminio', nome: 'Alumínio (US$/t)', url: cotacao('COMEX:ALI1!|1D', 'Alumínio (US$/t)') },
-  // Cobre: a COMEX cota em dólares por libra; × 2.204,62 libras = 1 tonelada.
-  { id: 'cobre', nome: 'Cobre (US$/t)', url: cotacao('COMEX:HG1!*2204.62|1D', 'Cobre (US$/t)') },
+  // Dados de bolsa (COMEX/LME) não são liberados nos widgets; usamos CFDs de corretoras,
+  // que acompanham o preço de referência e aparecem incorporados.
+  // Alumínio: CFD da Capital.com cotado em dólares por tonelada (referência LME).
+  { id: 'aluminio', nome: 'Alumínio (US$/t)', url: cotacao('CAPITALCOM:ALUMINUM|1D', 'Alumínio (US$/t)') },
+  // Cobre: o mercado cota em dólares por libra (1 tonelada = 2.204,62 libras).
+  { id: 'cobre', nome: 'Cobre (US$/lb)', url: cotacao('FX:COPPER|1D', 'Cobre (US$/lb)') },
   {
     id: 'cotacoes',
     nome: 'Quadro de cotações',
@@ -209,8 +212,8 @@ export const MODELOS = [
             { name: 'FX_IDC:EURBRL', displayName: 'Euro' },
             { name: 'BMFBOVESPA:IBOV', displayName: 'Ibovespa' },
             { name: 'BINANCE:BTCBRL', displayName: 'Bitcoin' },
-            { name: 'COMEX:HG1!*2204.62', displayName: 'Cobre (US$/t)' },
-            { name: 'COMEX:ALI1!', displayName: 'Alumínio (US$/t)' }
+            { name: 'FX:COPPER', displayName: 'Cobre (US$/lb)' },
+            { name: 'CAPITALCOM:ALUMINUM', displayName: 'Alumínio (US$/t)' }
           ]
         }
       ],

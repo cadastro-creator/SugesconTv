@@ -115,7 +115,9 @@ test('Modelos de cobre e alumínio em toneladas e cotação personalizada', () =
   const ids = MODELOS.map((m) => m.id);
   assert.ok(ids.includes('cobre') && ids.includes('aluminio'));
   const cobre = JSON.parse(decodeURIComponent(MODELOS.find((m) => m.id === 'cobre').url.split('#')[1]));
-  assert.deepEqual(cobre.symbols, [['Cobre (US$/t)', 'COMEX:HG1!*2204.62|1D']]);
+  assert.deepEqual(cobre.symbols, [['Cobre (US$/lb)', 'FX:COPPER|1D']]);
+  // Nenhum modelo usa dados de bolsa bloqueados nos widgets.
+  for (const m of MODELOS) assert.doesNotMatch(decodeURIComponent(m.url), /COMEX:|LME:/, m.nome);
   const r = modeloCotacao(' comex:ali1! ', 'Alumínio');
   assert.equal(r.ok, true);
   assert.equal(analisarLink(r.url).ok, true);
