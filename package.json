@@ -1,0 +1,15 @@
+{
+  "name": "painel-na-tv",
+  "private": true,
+  "type": "module",
+  "description": "Painel na TV: dashboards em sequência nas TVs (gestão à vista).",
+  "scripts": {
+    "dev": "node scripts/servidor-local.mjs",
+    "test": "node --test test/*.test.mjs",
+    "e2e": "node scripts/verificar-navegador.mjs"
+  },
+  "devDependencies": {
+    "jsqr": "1.4.0",
+    "playwright": "1.56.1"
+  }
+}
