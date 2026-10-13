@@ -71,7 +71,7 @@ A TV mostra todas as páginas do item 1, depois todas as do item 2, e assim por 
 - `&girar=90` – para TV na vertical (também `180` e `270`).
 
 **Opção B – app (Android TV, Google TV, TV box Android, Fire TV com Fire OS).**
-1. Baixe `https://<seu-projeto>.pages.dev/app/sugescontv.apk` (ou na página *Releases* do GitHub). No Fire TV, use o app **Downloader**; no Android TV, use um gerenciador de arquivos.
+1. Baixe `https://<seu-projeto>.pages.dev/apk` (atalho para `/app/sugescontv.apk`) (ou na página *Releases* do GitHub). No Fire TV, use o app **Downloader**; no Android TV, use um gerenciador de arquivos.
 2. Na primeira abertura, digite o **endereço do site** e o **código da tela**.
 3. O app abre sozinho ao ligar a TV e pode virar a **tela inicial** (a TV pergunta ao apertar HOME). Aperte **VOLTAR 3 vezes** para abrir os ajustes.
 4. O app se atualiza sozinho (verifica ao abrir e a cada 6 h). Mudanças nos dashboards **não** exigem atualizar o app.
