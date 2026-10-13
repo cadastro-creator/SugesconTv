@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Versão vem da tag (v1.2.3) pelo GitHub Actions: -PversionCode=10203 -PversionName=1.2.3
+def codigoVersao = (project.findProperty('versionCode') ?: '1').toString().toInteger()
+def nomeVersao = (project.findProperty('versionName') ?: '0.0.1').toString()
+def chave = System.getenv('ANDROID_KEYSTORE_FILE')
+
+android {
+    namespace 'com.sugescon.tv'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.sugescon.tv'
+        minSdk 21
+        targetSdk 34
+        versionCode codigoVersao
+        versionName nomeVersao
+    }
+
+    signingConfigs {
+        release {
+            if (chave) {
+                storeFile file(chave)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (chave) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
