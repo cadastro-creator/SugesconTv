@@ -1,0 +1,35 @@
+# Rode UMA VEZ (Actions → "Gerar chave do APK" → Run workflow) para criar a chave
+# que assina o APK. Antes, crie os segredos ANDROID_KEYSTORE_PASSWORD e ANDROID_KEY_ALIAS.
+name: Gerar chave do APK
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  chave:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Criar chave protegida pela senha dos segredos
+        env:
+          SENHA: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          APELIDO: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -z "$SENHA" ] || [ -z "$APELIDO" ]; then
+            echo "::error::Crie antes os segredos ANDROID_KEYSTORE_PASSWORD e ANDROID_KEY_ALIAS."; exit 1
+          fi
+          keytool -genkeypair -keystore chave.jks -storetype PKCS12 -alias "$APELIDO" \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$SENHA" -keypass "$SENHA" -dname "CN=SugesconTv, C=BR"
+          base64 -w0 chave.jks > ANDROID_KEYSTORE_BASE64.txt
+          rm chave.jks
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chave-android
+          path: ANDROID_KEYSTORE_BASE64.txt
+          retention-days: 1
