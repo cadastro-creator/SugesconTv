@@ -239,9 +239,9 @@ try {
   const textoCot = await cot.locator('#ativos').innerText();
   assert.match(textoCot, /Cobre \(US\$\/t\)/);
   assert.match(textoCot, /US\$ 14\.771/);
-  assert.match(textoCot, /R\$ 81,24/);
+  assert.match(textoCot, /R\$ 81\.240 \/t/);
   if (process.env.CAPTURAS) await cot.screenshot({ path: process.env.CAPTURAS + '/cotacoes.png' });
-  passo('tela de cotações: cobre e alumínio em US$/t e R$/kg');
+  passo('tela de cotações: cobre e alumínio em US$/t e R$/t');
 
   // Ignora erros de rede do teste offline.
   const reais = problemas.filter((p) => !/ERR_INTERNET_DISCONNECTED|net::ERR/.test(p));

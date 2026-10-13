@@ -110,8 +110,10 @@
       if (metal) preco.appendChild(el('span', 'cot-unidade', ' /t'));
       direita.appendChild(preco);
       if (metal) {
-        var sec = el('div', 'cot-secundario', 'R$ ' + numero(a.brlKg, 2));
-        sec.appendChild(el('span', 'cot-unidade', ' /kg'));
+        // brlKg: formato antigo (cópia de segurança guardada antes da mudança)
+        var brlTon = a.brlTon !== undefined ? a.brlTon : a.brlKg * 1000;
+        var sec = el('div', 'cot-secundario', 'R$ ' + numero(brlTon, 0));
+        sec.appendChild(el('span', 'cot-unidade', ' /t'));
         direita.appendChild(sec);
       }
       var alta = a.variacao >= 0;

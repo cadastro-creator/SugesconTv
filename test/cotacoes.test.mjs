@@ -6,19 +6,19 @@ import { criarKvMemoria } from '../scripts/kv-memoria.mjs';
 
 import { buscarFalso } from '../scripts/cotacoes-falsas.mjs';
 
-test('cotações: cobre convertido de libra para tonelada e R$/kg', async () => {
+test('cotações: cobre convertido de libra para tonelada, em US$ e R$', async () => {
   const r = await obterCotacoes(['cobre', 'aluminio', 'dolar'], buscarFalso());
   const [cobre, aluminio, dolar] = r.ativos;
   assert.equal(r.dolar, 5.5);
   assert.equal(cobre.unidade, 'US$/t');
   assert.equal(cobre.preco, Math.round(6.7 * 2204.62262 * 100) / 100); // ≈ 14.771
-  assert.equal(cobre.brlKg, Math.round(((cobre.preco * 5.5) / 1000) * 100) / 100); // ≈ 81,24
+  assert.equal(cobre.brlTon, Math.round(cobre.preco * 5.5 * 100) / 100); // ≈ 81.240
   assert.equal(cobre.historico.length, 2, 'ignora fechamento vazio');
   assert.equal(aluminio.preco, 3100);
-  assert.equal(aluminio.brlKg, 17.05);
+  assert.equal(aluminio.brlTon, 17050);
   assert.equal(aluminio.variacao, Math.round(((3100 - 3000) / 3000) * 10000) / 100);
   assert.equal(dolar.unidade, 'R$');
-  assert.equal(dolar.brlKg, undefined);
+  assert.equal(dolar.brlTon, undefined);
 });
 
 test('cotações: lista de ativos validada', () => {

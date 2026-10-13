@@ -1,7 +1,7 @@
 // Cotações de metais e dólar para a tela /cotacoes (preços de referência dos contratos futuros).
 // Cobre: COMEX HG=F em US$/libra → convertido para US$/tonelada.
 // Alumínio: COMEX ALI=F, já em US$/tonelada.
-// R$/kg = US$/t × dólar ÷ 1000.
+// R$/t = US$/t × dólar.
 
 const LIBRAS_POR_TONELADA = 2204.62262;
 
@@ -73,7 +73,7 @@ export async function obterCotacoes(ids, buscar = fetch) {
       variacao: anterior ? arred(((preco - anterior) / anterior) * 100, 2) : 0,
       historico: hist
     };
-    if (a.metal) item.brlKg = arred((preco * dolar) / 1000, 2);
+    if (a.metal) item.brlTon = arred(preco * dolar, 2);
     return item;
   });
   return { atualizadoEm: new Date().toISOString(), dolar: arred(dolar, 4), ativos };

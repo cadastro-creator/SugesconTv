@@ -194,10 +194,10 @@ export const MODELOS = [
   { id: 'euro', nome: 'Euro (EUR/BRL)', url: cotacao('FX_IDC:EURBRL|1D') },
   { id: 'ibovespa', nome: 'Ibovespa', url: cotacao('BMFBOVESPA:IBOV|1D') },
   { id: 'bitcoin', nome: 'Bitcoin (BTC/BRL)', url: cotacao('BINANCE:BTCBRL|1D') },
-  // Metais em tonelada: tela própria do SugesconTv (/cotacoes), com US$/t e R$/kg.
-  { id: 'metais', nome: 'Cobre e Alumínio (US$/t e R$/kg)', caminho: '/cotacoes?ativos=cobre,aluminio' },
-  { id: 'cobre', nome: 'Cobre (US$/t e R$/kg)', caminho: '/cotacoes?ativos=cobre' },
-  { id: 'aluminio', nome: 'Alumínio (US$/t e R$/kg)', caminho: '/cotacoes?ativos=aluminio' },
+  // Metais em tonelada: tela própria do SugesconTv (/cotacoes), com US$/t e R$/t.
+  { id: 'metais', nome: 'Cobre e Alumínio (US$/t e R$/t)', caminho: '/cotacoes?ativos=cobre,aluminio' },
+  { id: 'cobre', nome: 'Cobre (US$/t e R$/t)', caminho: '/cotacoes?ativos=cobre' },
+  { id: 'aluminio', nome: 'Alumínio (US$/t e R$/t)', caminho: '/cotacoes?ativos=aluminio' },
   { id: 'metais-dolar', nome: 'Cobre, Alumínio e Dólar', caminho: '/cotacoes?ativos=cobre,aluminio,dolar' },
   {
     id: 'cotacoes',
