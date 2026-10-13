@@ -1,0 +1,17 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; frame-src https:; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'
+
+/admin
+  Cache-Control: no-cache
+
+/tv
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: no-cache
+
+/app/*
+  Cache-Control: no-cache
