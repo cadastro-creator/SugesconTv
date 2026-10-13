@@ -5,6 +5,7 @@ Dashboards de gestão à vista nas TVs. A TV mostra, em sequência e sem ningué
 - Hospedagem gratuita: **Cloudflare Pages** (site + API) e **Cloudflare KV** (dados).
 - Nada para instalar no computador: tudo é feito pelo navegador.
 - Sem bibliotecas externas no site, na TV e no app.
+- Passo a passo para o Claude no navegador fazer as configurações: [docs/TAREFAS-NAVEGADOR.md](docs/TAREFAS-NAVEGADOR.md).
 
 > ⚠️ **Atenção à privacidade:** links “Publicar na Web” do Power BI e das Planilhas, e relatórios do Looker com incorporação ativada, ficam **visíveis para qualquer pessoa que tenha o link**. Não use com dados sigilosos sem avaliar com o responsável pelos dados.
 
