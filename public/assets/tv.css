@@ -30,21 +30,31 @@ body.pnt-tv * { cursor: none; }
   margin: 0;
   padding: 0;
   background: #fff;
-  /* Páginas pré-carregadas ficam atrás, transparentes (não "escondidas", para continuarem prontas). */
+  /* Páginas guardadas: carregadas, mas sem desenhar (poupa a memória de vídeo da TV). */
+  visibility: hidden;
   opacity: 0;
   z-index: 1;
   pointer-events: none;
   -webkit-transition: opacity 0.9s ease;
   transition: opacity 0.9s ease;
 }
-.pnt-quadro.pnt-saindo {
+/* Próxima página: desenhada por trás da atual, para os gráficos montarem antes de aparecer. */
+.pnt-quadro.pnt-preparando {
+  visibility: visible;
   opacity: 1;
   z-index: 2;
 }
 .pnt-quadro.pnt-visivel {
+  visibility: visible;
   opacity: 1;
   z-index: 3;
   pointer-events: auto;
+}
+/* Página que sai: fica por cima e some suavemente, revelando a próxima já pronta. */
+.pnt-quadro.pnt-saindo {
+  visibility: visible;
+  opacity: 0;
+  z-index: 4;
 }
 .pnt-mensagem {
   position: absolute;

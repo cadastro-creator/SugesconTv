@@ -1,5 +1,5 @@
 // Painel de gestão do SugesconTv.
-import { TIPOS, MODELOS } from './links.js';
+import { TIPOS, MODELOS, modeloCotacao } from './links.js';
 import { qrSvg } from './qr.js';
 
 const $ = (id) => document.getElementById(id);
@@ -625,3 +625,15 @@ $('formatoEmPe').addEventListener('click', () => definirFormato(true));
   if (m) await abrirEditor(m[1]);
   else await abrirLista();
 })();
+
+$('formCotacao').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const r = modeloCotacao($('simboloCotacao').value, $('nomeCotacao').value);
+  if (!r.ok) return mensagem($('msgItem'), r.erro);
+  estado.tela.itens.push({ id: novoId(), tipo: 'site', nome: r.nome, recarregarMin: 30, pausado: false, paginas: [{ url: r.url, segundos: 30 }] });
+  $('simboloCotacao').value = '';
+  $('nomeCotacao').value = '';
+  mensagem($('msgItem'), `✓ ${r.nome} adicionado. Confira na prévia se a cotação aparece.`, 'ok');
+  alterado();
+  selecionar(estado.tela.itens.length - 1, 0);
+});

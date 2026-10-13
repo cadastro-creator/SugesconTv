@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { analisarLink, validarEndereco, MODELOS } from '../public/assets/links.js';
+import { analisarLink, validarEndereco, MODELOS, modeloCotacao } from '../public/assets/links.js';
 
 const OCULTAR = 'navContentPaneEnabled=false&filterPaneEnabled=false';
 
@@ -109,4 +109,17 @@ test('Modelos prontos: widgets do TradingView em pt-BR e válidos', () => {
     assert.equal(r.ok, true, m.nome);
     assert.match(m.url, /^https:\/\/s\.tradingview\.com\/embed-widget\/.+locale=br/);
   }
+});
+
+test('Modelos de cobre e alumínio em toneladas e cotação personalizada', () => {
+  const ids = MODELOS.map((m) => m.id);
+  assert.ok(ids.includes('cobre') && ids.includes('aluminio'));
+  const cobre = JSON.parse(decodeURIComponent(MODELOS.find((m) => m.id === 'cobre').url.split('#')[1]));
+  assert.deepEqual(cobre.symbols, [['Cobre (US$/t)', 'COMEX:HG1!*2204.62|1D']]);
+  const r = modeloCotacao(' comex:ali1! ', 'Alumínio');
+  assert.equal(r.ok, true);
+  assert.equal(analisarLink(r.url).ok, true);
+  assert.deepEqual(JSON.parse(decodeURIComponent(r.url.split('#')[1])).symbols, [['Alumínio', 'COMEX:ALI1!|1D']]);
+  assert.equal(modeloCotacao('<script>').ok, false);
+  assert.equal(modeloCotacao('').ok, false);
 });

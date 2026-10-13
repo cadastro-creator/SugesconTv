@@ -1,10 +1,12 @@
 /* SugesconTv - reprodutor de páginas em sequência.
  * JavaScript ES5 (funciona em navegadores de TV antigos). Usado pela TV e pela prévia do painel.
  *
- * Cada página fica carregada num iframe próprio, escondido atrás da página visível.
- * Ao chegar a vez dela, só troca (sem tela de carregamento). As páginas seguintes são
- * pré-carregadas em segundo plano, uma de cada vez, e a recarga a cada X minutos é
- * feita numa cópia escondida que só substitui a antiga quando estiver pronta.
+ * Cada página fica carregada num iframe próprio (dados já baixados), escondido e sem
+ * ser desenhado, para poupar a memória de vídeo da TV. Alguns segundos antes da vez
+ * dela, a página passa a ser desenhada por trás da atual ("preparando"), para os
+ * gráficos montarem; na troca, a página atual some suavemente revelando a próxima.
+ * As páginas seguintes são pré-carregadas uma de cada vez, e a recarga a cada X minutos
+ * é feita numa cópia escondida que só substitui a antiga quando estiver pronta.
  *
  * var p = new PainelPlayer(elemento, opcoes);
  * p.definirLista(itens);  // itens no formato da API
@@ -24,6 +26,8 @@
   var TRANSICAO_MS = 900;
   var VERIFICAR_RECARGA_MS = 30000;
   var LIMITE_PADRAO = 8;
+  var PREPARO_MS = 8000; // desenha a próxima página por trás este tempo antes da troca
+  var PREPARO_CURTO_MS = 2500; // quando a página acabou de carregar
 
   function agora() {
     return new Date().getTime();
@@ -102,6 +106,7 @@
     this.timerPagina = null;
     this.timerEspera = null;
     this.timerRecarga = null;
+    this.timerPreparo = null;
   }
 
   PainelPlayer.montarSequencia = montarSequencia;
@@ -134,6 +139,7 @@
     clearTimeout(this.timerPagina);
     clearTimeout(this.timerEspera);
     clearInterval(this.timerRecarga);
+    clearTimeout(this.timerPreparo);
     for (var url in this.quadros) {
       if (this.quadros.hasOwnProperty(url)) this._descartar(this.quadros[url]);
     }
@@ -195,7 +201,7 @@
       if (q.el !== el || !self.rodando) return;
       q.pronto = true;
       q.carregadoEm = agora();
-      if (self.esperando === q) self._exibir(q, self.posEsperada);
+      if (self.esperando === q) self._mostrarPreparada(q, self.posEsperada);
       self._preaquecer();
     });
   };
@@ -240,8 +246,7 @@
         q.novo = null;
       }
     }, TEMPO_CARGA_MS);
-    var novo = novoIframe(this.palco, q.url, function (el) {
-      clearTimeout(limiteTempo);
+    function trocar(el) {
       if (q.novo !== el || !self.rodando) return;
       var antigo = q.el;
       q.el = el;
@@ -254,7 +259,21 @@
           removerIframe(antigo);
         }, TRANSICAO_MS + 100);
       } else {
+        el.className = antigo.className;
         removerIframe(antigo);
+      }
+    }
+    var novo = novoIframe(this.palco, q.url, function (el) {
+      clearTimeout(limiteTempo);
+      if (q.novo !== el || !self.rodando) return;
+      if (self.visivel === q) {
+        // Na tela: desenha a cópia por trás e troca quando os gráficos já montaram.
+        el.className = 'pnt-quadro pnt-preparando';
+        setTimeout(function () {
+          trocar(el);
+        }, PREPARO_MS);
+      } else {
+        trocar(el);
       }
     });
     q.novo = novo;
@@ -312,7 +331,7 @@
     var n = this.seq.length;
     var q = this._quadro(this.seq[p]);
     if (q.pronto) {
-      this._exibir(q, p);
+      this._mostrarPreparada(q, p);
       return;
     }
     // Ainda carregando: a página atual continua na tela até a próxima ficar pronta.
@@ -329,10 +348,45 @@
     }, Math.max(1000, TEMPO_CARGA_MS - (agora() - q.inicioCarga)));
   };
 
+  // Garante que a página foi desenhada por trás antes de aparecer (gráficos já montados).
+  PainelPlayer.prototype._mostrarPreparada = function (q, p) {
+    var self = this;
+    if (!this.visivel || q === this.visivel || /pnt-preparando/.test(q.el.className)) {
+      this._exibir(q, p);
+      return;
+    }
+    q.el.className = 'pnt-quadro pnt-preparando';
+    this.esperando = q;
+    this.posEsperada = p;
+    clearTimeout(this.timerEspera);
+    this.timerEspera = setTimeout(function () {
+      if (self.esperando === q && q.el) self._exibir(q, p);
+    }, PREPARO_CURTO_MS);
+  };
+
+  // Alguns segundos antes da troca, começa a desenhar a próxima página por trás da atual.
+  PainelPlayer.prototype._prepararProxima = function () {
+    if (!this.rodando) return;
+    var seq = this.pendente || this.seq;
+    if (!seq.length) return;
+    var pg = seq[(this.pos + 1) % seq.length];
+    var q = pg && this.quadros[pg.url];
+    if (q && q.pronto && q.el && q !== this.visivel) q.el.className = 'pnt-quadro pnt-preparando';
+  };
+
   PainelPlayer.prototype._exibir = function (q, p) {
     var self = this;
     clearTimeout(this.timerEspera);
+    clearTimeout(this.timerPreparo);
     this.esperando = null;
+    // Páginas que estavam sendo preparadas e não vão aparecer voltam a ficar escondidas.
+    for (var url in this.quadros) {
+      if (!this.quadros.hasOwnProperty(url)) continue;
+      var outro = this.quadros[url];
+      if (outro !== q && outro !== this.visivel && outro.el && /pnt-preparando/.test(outro.el.className)) {
+        outro.el.className = 'pnt-quadro';
+      }
+    }
     var anterior = this.visivel;
     var pg = this.seq[p];
     this.pos = p;
@@ -352,6 +406,9 @@
     q.mostradoEm = agora();
     if (this.op.aoMostrar) this.op.aoMostrar(pg);
     this._agendar(pg.segundos * 1000);
+    this.timerPreparo = setTimeout(function () {
+      self._prepararProxima();
+    }, Math.max(0, pg.segundos * 1000 - PREPARO_MS));
     this._preaquecer();
   };
 
