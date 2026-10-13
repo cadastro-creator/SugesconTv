@@ -14,7 +14,8 @@ final class Config {
     }
 
     static String site(Context c) {
-        return prefs(c).getString("site", "");
+        String s = prefs(c).getString("site", "");
+        return s.isEmpty() ? BuildConfig.SITE_PADRAO : s;
     }
 
     static String codigo(Context c) {

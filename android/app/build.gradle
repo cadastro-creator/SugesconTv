@@ -6,6 +6,9 @@ plugins {
 def codigoVersao = (project.findProperty('versionCode') ?: '1').toString().toInteger()
 def nomeVersao = (project.findProperty('versionName') ?: '0.0.1').toString()
 def chave = System.getenv('ANDROID_KEYSTORE_FILE')
+// Endereço do site já embutido no app (o usuário só digita o código da tela).
+def sitePadrao = (project.findProperty('siteUrl') ?: '').toString().trim()
+if (!sitePadrao) sitePadrao = 'https://sugescontv.pages.dev'
 
 android {
     namespace 'com.sugescon.tv'
@@ -17,6 +20,11 @@ android {
         targetSdk 34
         versionCode codigoVersao
         versionName nomeVersao
+        buildConfigField 'String', 'SITE_PADRAO', '"' + sitePadrao.replaceAll('/+$', '') + '"'
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     signingConfigs {

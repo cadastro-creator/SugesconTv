@@ -32,12 +32,12 @@ public class ConfigActivity extends Activity {
         caixa.setBackgroundColor(Color.rgb(15, 28, 46));
 
         caixa.addView(texto("SugesconTv – ajustes", 28, true));
-        caixa.addView(texto("Endereço do site (ex.: https://minhaempresa.pages.dev)", 18, false));
-        campoSite = campo(Config.site(this).isEmpty() ? "https://" : Config.site(this), InputType.TYPE_TEXT_VARIATION_URI);
-        caixa.addView(campoSite);
-        caixa.addView(texto("Código da tela (ex.: K7Q2PX)", 18, false));
+        caixa.addView(texto("Código da tela (aparece no painel de gestão, ex.: K7Q2PX)", 18, false));
         campoCodigo = campo(Config.codigo(this), InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         caixa.addView(campoCodigo);
+        caixa.addView(texto("Endereço do site (já vem preenchido; só mude se usar outro endereço)", 16, false));
+        campoSite = campo(Config.site(this), InputType.TYPE_TEXT_VARIATION_URI);
+        caixa.addView(campoSite);
 
         aviso = texto("", 18, false);
         aviso.setTextColor(Color.rgb(255, 170, 160));
@@ -77,7 +77,6 @@ public class ConfigActivity extends Activity {
         rolagem.addView(caixa);
         setContentView(rolagem);
         campoCodigo.requestFocus();
-        if (Config.site(this).isEmpty()) campoSite.requestFocus();
     }
 
     private void salvar() {
