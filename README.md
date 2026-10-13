@@ -69,6 +69,9 @@ A TV mostra todas as páginas do item 1, depois todas as do item 2, e assim por 
 **Opção A – navegador da TV (mais simples).** Abra o link da tela (`https://<seu-projeto>.pages.dev/tv?tela=CODIGO`) e salve nos favoritos. Opções no fim do link:
 - `&relogio=1` – mostra um relógio pequeno.
 - `&girar=90` – para TV na vertical (também `180` e `270`).
+- `&quadros=3` – para TVs fracas: limita quantas páginas ficam carregadas na memória (padrão 8).
+
+As páginas ficam **carregadas em segundo plano**: na hora de aparecer, só trocam, sem tela de carregamento (parece um quadro fixo). A recarga a cada X minutos é feita numa cópia escondida, que só substitui a antiga quando está pronta. Sem internet, a TV continua girando entre as páginas já carregadas.
 
 **Opção B – app (Android TV, Google TV, TV box Android, Fire TV com Fire OS).**
 1. Baixe `https://<seu-projeto>.pages.dev/apk` (atalho para `/app/sugescontv.apk`) (ou na página *Releases* do GitHub). No Fire TV, use o app **Downloader**; no Android TV, use um gerenciador de arquivos.

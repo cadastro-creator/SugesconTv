@@ -130,6 +130,7 @@
     var ultimaLista = null;
     var naoEncontrada = false;
     var player = new window.PainelPlayer($('palco'), {
+      maxQuadros: parseInt(parametro('quadros'), 10) || 0,
       offline: semConexao,
       aoVazio: function (vazio) {
         if (vazio && naoEncontrada) mensagem('Tela "' + codigo + '" não encontrada. Confira o código no painel de gestão.');

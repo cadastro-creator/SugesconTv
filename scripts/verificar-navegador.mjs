@@ -145,6 +145,10 @@ try {
     t.itens.forEach((i) => i.paginas.forEach((p) => (p.segundos = 5)));
     await fetch('/api/telas/' + c, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ itens: t.itens }) });
   }, codigo);
+  const pedidosTv = {};
+  tv.on('request', (r) => {
+    if (r.url().startsWith('https://')) pedidosTv[r.url()] = (pedidosTv[r.url()] || 0) + 1;
+  });
   await tv.reload();
   const seq = [];
   const t0 = Date.now();
@@ -157,6 +161,29 @@ try {
   }
   assert.deepEqual(seq.slice(0, 4).map((u) => u.split('/').pop().split('#')[0].slice(0, 20)), ['PAG1', 'PAG2', '?locale=br', 'PAG1']);
   passo('TV rodou as páginas em sequência e voltou ao início');
+
+  // Cache: na segunda volta nada é baixado de novo e todas as páginas ficam prontas na memória.
+  assert.equal(await tv.locator('iframe').count(), 3, 'as 3 páginas ficam carregadas');
+  const pag1 = Object.keys(pedidosTv).find((u) => u.endsWith('/page/PAG1'));
+  assert.equal(pedidosTv[pag1], 1, 'a página 1 foi baixada uma vez só');
+  assert.ok(Object.values(pedidosTv).every((n) => n === 1), 'nenhuma página recarregada: ' + JSON.stringify(pedidosTv));
+  passo('páginas ficam em cache: troca instantânea sem recarregar');
+
+  // Limite de memória: com ?quadros=2 só 2 páginas ficam carregadas e a sequência continua.
+  const economica = await contexto.newPage();
+  vigiar(economica, 'tv-economica');
+  await economica.goto(`${BASE}/tv?tela=${codigo}&quadros=2`);
+  const seqEco = [];
+  const t1 = Date.now();
+  while (seqEco.length < 4 && Date.now() - t1 < 40000) {
+    assert.ok((await economica.locator('iframe').count()) <= 2, 'no máximo 2 iframes');
+    const src = await economica.locator('iframe.pnt-visivel').getAttribute('src').catch(() => null);
+    if (src && src !== seqEco[seqEco.length - 1]) seqEco.push(src);
+    await economica.waitForTimeout(200);
+  }
+  assert.equal(seqEco.length, 4, 'modo econômico também gira');
+  await economica.close();
+  passo('?quadros=2 limita a memória e continua girando');
 
   await contexto.setOffline(true);
   await tv.waitForSelector('#semConexao:not(.pnt-oculto)');
