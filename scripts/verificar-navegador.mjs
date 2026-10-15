@@ -157,7 +157,7 @@ try {
   tv.on('request', (r) => {
     if (r.url().startsWith('https://')) pedidosTv[r.url()] = (pedidosTv[r.url()] || 0) + 1;
   });
-  await tv.reload();
+  await tv.goto(`${BASE}/tv?tela=${codigo}&relogio=1&preparo=2`);
   const seq = [];
   const t0 = Date.now();
   while (seq.length < 4 && Date.now() - t0 < 40000) {
@@ -170,6 +170,18 @@ try {
   assert.deepEqual(seq.slice(0, 4).map((u) => u.split('/').pop().split('#')[0].slice(0, 20)), ['PAG1', 'PAG2', '?locale=br', 'PAG1']);
   passo('TV rodou as páginas em sequência e voltou ao início');
 
+  // A próxima página fica desenhada por trás (preparando) enquanto a atual está na tela.
+  await tv.waitForSelector('iframe.pnt-preparando', { state: 'attached', timeout: 10000 });
+  const preparo = await tv.evaluate(() => {
+    const vis = document.querySelector('iframe.pnt-visivel');
+    const prep = document.querySelector('iframe.pnt-preparando');
+    return { diferentes: vis && prep && vis.src !== prep.src, zVis: getComputedStyle(vis).zIndex, zPrep: getComputedStyle(prep).zIndex, visivel: getComputedStyle(prep).visibility };
+  });
+  assert.ok(preparo.diferentes, 'a página preparada é a próxima');
+  assert.ok(Number(preparo.zPrep) < Number(preparo.zVis), 'fica por trás da atual');
+  assert.equal(preparo.visivel, 'visible', 'está sendo desenhada');
+  passo('próxima página já desenhada por trás antes de aparecer');
+
   // Cache: na segunda volta nada é baixado de novo e todas as páginas ficam prontas na memória.
   assert.equal(await tv.locator('iframe').count(), 3, 'as 3 páginas ficam carregadas');
   const pag1 = Object.keys(pedidosTv).find((u) => u.endsWith('/page/PAG1'));
@@ -180,7 +192,7 @@ try {
   // Limite de memória: com ?quadros=2 só 2 páginas ficam carregadas e a sequência continua.
   const economica = await contexto.newPage();
   vigiar(economica, 'tv-economica');
-  await economica.goto(`${BASE}/tv?tela=${codigo}&quadros=2`);
+  await economica.goto(`${BASE}/tv?tela=${codigo}&quadros=2&preparo=2`);
   const seqEco = [];
   const t1 = Date.now();
   while (seqEco.length < 4 && Date.now() - t1 < 40000) {

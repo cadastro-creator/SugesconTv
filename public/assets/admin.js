@@ -545,6 +545,7 @@ for (const m of MODELOS) {
 // ---------- prévia ----------
 
 const player = new window.PainelPlayer($('previaPalco'), {
+  preparoMinimo: 1500, // prévia: troca rápida
   aoMostrar: (pg) => {
     if (estado.sequencia) {
       $('previaLegenda').textContent = `Sequência: ${pg.nome} – página ${pg.pagina + 1}`;

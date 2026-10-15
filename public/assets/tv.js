@@ -135,12 +135,22 @@
     var chaveCache = 'sugescontv:' + codigo;
     var ultimaLista = null;
     var naoEncontrada = false;
+    var jaMostrou = false;
     var player = new window.PainelPlayer($('palco'), {
       maxQuadros: parseInt(parametro('quadros'), 10) || 0,
+      // ?preparo=N: segundos mínimos desenhando a página escondida antes de mostrar (padrão 15).
+      preparoMinimo: parametro('preparo') !== '' ? (parseInt(parametro('preparo'), 10) || 0) * 1000 : -1,
+      aoMostrar: function () {
+        if (!jaMostrou) {
+          jaMostrou = true;
+          mensagem('');
+        }
+      },
       offline: semConexao,
       aoVazio: function (vazio) {
         if (vazio && naoEncontrada) mensagem('Tela "' + codigo + '" não encontrada. Confira o código no painel de gestão.');
-        else mensagem(vazio ? 'Esta tela ainda não tem dashboards ativos. Adicione itens no painel de gestão.' : '');
+        else if (vazio) mensagem('Esta tela ainda não tem dashboards ativos. Adicione itens no painel de gestão.');
+        else mensagem(jaMostrou ? '' : 'Carregando painéis…');
       }
     });
 
