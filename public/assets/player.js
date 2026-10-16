@@ -2,9 +2,10 @@
  * JavaScript ES5 (funciona em navegadores de TV antigos). Usado pela TV e pela prévia do painel.
  *
  * Cada página fica carregada num iframe próprio (dados já baixados), escondido e sem
- * ser desenhado, para poupar a memória de vídeo da TV. Assim que uma página aparece,
- * a seguinte passa a ser desenhada por trás dela ("preparando") durante todo o tempo
- * da atual, para os gráficos montarem; ela só aparece depois de um tempo mínimo de
+ * ser desenhado, para poupar a memória de vídeo da TV. Nos últimos segundos da página
+ * atual (o tempo mínimo de preparo), a seguinte passa a ser desenhada por trás dela
+ * ("preparando"), para os gráficos montarem sem disputar a TV o tempo todo com a atual
+ * (importante para páginas pesadas, como 3D). Ela só aparece depois desse tempo de
  * preparo (se preciso, a atual fica um pouco mais). Na troca, a atual some suavemente.
  * As páginas seguintes são pré-carregadas uma de cada vez, e a recarga a cada X minutos
  * é feita numa cópia escondida que só substitui a antiga quando estiver pronta.
@@ -206,7 +207,7 @@
       q.pronto = true;
       q.carregadoEm = agora();
       if (self.esperando === q) self._mostrarPreparada(q, self.posEsperada);
-      else if (self._ehProxima(q)) self._preparar(q); // começa a desenhar por trás já
+      else if (self._ehProxima(q) && self.prepararJa) self._preparar(q); // já está na hora de preparar
       self._preaquecer();
     });
   };
@@ -392,9 +393,10 @@
     }, falta);
   };
 
-  // A seguinte começa a ser desenhada por trás logo que a atual aparece.
+  // Nos últimos segundos da atual, a seguinte começa a ser desenhada por trás.
   PainelPlayer.prototype._prepararProxima = function () {
     if (!this.rodando) return;
+    this.prepararJa = true;
     var seq = this.pendente || this.seq;
     if (!seq.length) return;
     var pg = seq[(this.pos + 1) % seq.length];
@@ -429,9 +431,8 @@
         setTimeout(function () {
           if (self.visivel === anterior || anterior.el !== el) return;
           if (self.quadros[anterior.url] === anterior && self._naSequencia(anterior.url)) {
-            // Se ela mesma for a próxima (ex.: só 2 páginas), continua desenhada por trás.
             el.className = 'pnt-quadro';
-            if (self._ehProxima(anterior)) self._preparar(anterior);
+            if (self.prepararJa && self._ehProxima(anterior)) self._preparar(anterior);
           } else self._descartar(anterior);
         }, TRANSICAO_MS + 100);
       }
@@ -439,10 +440,11 @@
     q.mostradoEm = agora();
     if (this.op.aoMostrar) this.op.aoMostrar(pg);
     this._agendar(pg.segundos * 1000);
-    // A próxima começa a ser desenhada por trás logo após a transição.
+    // A próxima começa a ser desenhada por trás só nos últimos segundos desta.
+    this.prepararJa = false;
     this.timerPreparo = setTimeout(function () {
       self._prepararProxima();
-    }, TRANSICAO_MS + 200);
+    }, Math.max(TRANSICAO_MS + 200, pg.segundos * 1000 - this.preparoMin));
     this._preaquecer();
   };
 
