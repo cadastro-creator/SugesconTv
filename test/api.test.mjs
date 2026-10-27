@@ -287,3 +287,10 @@ test('registro (log) da TV: só grava com a gravação ligada; leitura só com l
   const longe = await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: { registroAte: Date.now() + 10 * 3600000 } }, cookie });
   assert.equal((await longe.json()).opcoes.registroAte, undefined);
 });
+
+test('verificar: páginas do próprio painel são aceitas sem consultar a rede', async () => {
+  const r = await verificarExibicao(ORIGEM + '/teste-iframes?url=x', ORIGEM, async () => {
+    throw new Error('não deveria buscar');
+  });
+  assert.equal(r.permitido, true);
+});

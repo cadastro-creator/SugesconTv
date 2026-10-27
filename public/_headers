@@ -27,3 +27,9 @@
   ! Content-Security-Policy
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'; object-src 'none'
   Cache-Control: no-cache
+
+# Teste de exibição (4 iframes): também pode ser exibido dentro do próprio SugesconTv.
+/teste-iframes
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; frame-src https:; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'; object-src 'none'
+  Cache-Control: no-cache

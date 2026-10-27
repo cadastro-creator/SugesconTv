@@ -46,6 +46,12 @@ export function analisarCabecalhos(cabecalhos, origemPainel) {
 
 // Retorna { permitido: true|false|null }. null = não foi possível verificar.
 export async function verificarExibicao(url, origemPainel, buscar = fetch) {
+  // Páginas do próprio SugesconTv (cotações, diagnóstico, testes) sempre podem ser exibidas.
+  try {
+    if (new URL(url).origin === new URL(origemPainel).origin) return { permitido: true, motivo: null };
+  } catch {
+    /* segue a verificação normal */
+  }
   const controle = new AbortController();
   const relogio = setTimeout(() => controle.abort(), TEMPO_LIMITE_MS);
   try {
