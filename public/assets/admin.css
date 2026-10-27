@@ -155,3 +155,5 @@ summary { cursor: pointer; color: var(--primaria); }
 .ajustes-tv summary { font-weight: 600; }
 .linha-ajuste { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
 .linha-ajuste input[type="number"] { width: 80px; }
+.registro { margin-top: 14px; border-top: 1px solid var(--borda); padding-top: 10px; }
+.texto-registro { max-height: 320px; overflow: auto; background: #0f1c2e; color: #d6e2f0; font-size: 12px; line-height: 1.5; padding: 10px; border-radius: 7px; white-space: pre-wrap; word-break: break-all; }

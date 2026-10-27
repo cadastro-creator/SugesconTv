@@ -171,6 +171,40 @@
     if (window.requestAnimationFrame) window.requestAnimationFrame(passo);
   });
 
+  // Animação: quantos quadros por segundo esta página consegue desenhar (0 = animação parada).
+  var celula = document.createElement('td');
+  var trA = document.createElement('tr');
+  var tdA = document.createElement('td');
+  tdA.appendChild(document.createTextNode('Animação'));
+  trA.appendChild(tdA);
+  trA.appendChild(celula);
+  var tabela = document.getElementById('itens');
+  tabela.insertBefore(trA, tabela.firstChild);
+  var quadros = 0;
+  var quadros10 = 0;
+  function contar() {
+    quadros++;
+    quadros10++;
+    window.requestAnimationFrame(contar);
+  }
+  if (window.requestAnimationFrame) window.requestAnimationFrame(contar);
+  var medidas = 0;
+  setInterval(function () {
+    var fps = Math.round(quadros / 2);
+    quadros = 0;
+    celula.textContent = fps + ' quadros/s' + (fps < 5 ? ' — PARADA (gráficos animados não aparecem)' : ' — ok');
+    celula.className = fps < 5 ? 'diag-ruim' : '';
+    medidas++;
+    if (medidas % 5 === 0) {
+      try {
+        window.parent.postMessage({ sugescontvDiag: 'animacao dentro do diagnostico ' + Math.round(quadros10 / 10) + ' quadros/s' }, window.location.origin);
+      } catch (e) {
+        /* fora da TV */
+      }
+      quadros10 = 0;
+    }
+  }, 2000);
+
   setTimeout(function () {
     window.location.reload();
   }, 60000);

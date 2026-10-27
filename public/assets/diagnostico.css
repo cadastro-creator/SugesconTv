@@ -18,3 +18,4 @@ body.diag { padding: 1.5vh 3vw; }
 .diag-forma { display: table-cell; text-align: center; font-size: 2.2vh; color: #e9eef5; padding: 0 0.5vw; }
 .diag-forma svg, .diag-forma canvas { display: block; width: 11vh; height: 11vh; margin: 0 auto 0.6vh; background: #0d1520; border-radius: 0.6vh; }
 .diag-canvas { width: auto; max-width: 100%; aspect-ratio: 600 / 260; }
+.diag-ruim { color: #ff8080; font-weight: bold; }

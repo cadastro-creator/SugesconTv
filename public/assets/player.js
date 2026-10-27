@@ -23,6 +23,7 @@
  *   offline: function() -> true quando sem conexão (só gira entre páginas já carregadas)
  *   aoMostrar: function(pagina) - chamada quando uma página aparece
  *   aoVazio: function(vazio) - chamada quando a lista fica vazia/deixa de estar
+ *   aoEvento: function(texto) - registro do que acontece (para o log da TV)
  */
 (function (global) {
   'use strict';
@@ -158,6 +159,10 @@
     this.pos = -1;
   };
 
+  PainelPlayer.prototype._ev = function (tipo, url, extra) {
+    if (this.op.aoEvento) this.op.aoEvento(tipo + ' ' + (url || '').slice(0, 120) + (extra ? ' ' + extra : ''));
+  };
+
   PainelPlayer.prototype._agendar = function (ms) {
     var self = this;
     clearTimeout(this.timerPagina);
@@ -182,6 +187,7 @@
   };
 
   PainelPlayer.prototype._descartar = function (q) {
+    this._ev('descartada', q.url);
     removerIframe(q.el);
     removerIframe(q.novo);
     q.el = null;
@@ -206,10 +212,12 @@
     var self = this;
     q.pronto = false;
     q.inicioCarga = agora();
+    this._ev('carregando', q.url);
     q.el = novoIframe(this.palco, q.url, function (el) {
       if (q.el !== el || !self.rodando) return;
       q.pronto = true;
       q.carregadoEm = agora();
+      self._ev('carregou', q.url, 'em ' + ((q.carregadoEm - q.inicioCarga) / 1000).toFixed(1) + ' s');
       if (self.esperando === q) self._mostrarPreparada(q, self.posEsperada);
       else if (self._ehProxima(q) && self.prepararJa) self._preparar(q); // já está na hora de preparar
       self._preaquecer();
@@ -250,6 +258,7 @@
   PainelPlayer.prototype._recarregar = function (q) {
     var self = this;
     if (q.novo || !q.el) return;
+    this._ev('recarregando', q.url);
     var limiteTempo = setTimeout(function () {
       if (q.novo === novo) {
         removerIframe(novo);
@@ -262,6 +271,7 @@
       q.el = el;
       q.novo = null;
       q.carregadoEm = agora();
+      self._ev('recarregada', q.url);
       if (self.visivel === q) {
         el.className = 'pnt-quadro pnt-visivel';
         antigo.className = 'pnt-quadro pnt-saindo';
@@ -358,6 +368,7 @@
       if (self.esperando !== q) return;
       self.esperando = null;
       // Não carregou em 25 s: descarta e pula para a próxima.
+      self._ev('NAO-CARREGOU-25s', q.url);
       self._descartar(q);
       if (tentativas + 1 < n) self._mostrarQuandoPronta((p + 1) % n, tentativas + 1);
       else self._agendar(10000);
@@ -377,6 +388,7 @@
     if (/pnt-preparando/.test(q.el.className)) return;
     q.el.className = 'pnt-quadro pnt-preparando';
     q.preparadoDesde = agora();
+    this._ev('preparando', q.url);
   };
 
   // Só mostra a página depois do tempo mínimo desenhando por trás (gráficos já montados).
@@ -448,6 +460,7 @@
       }
     }
     q.mostradoEm = agora();
+    this._ev('exibindo', q.url, (this.direto ? '(direto) ' : '') + pg.segundos + ' s');
     if (this.op.aoMostrar) this.op.aoMostrar(pg);
     this._agendar(pg.segundos * 1000);
     // A próxima começa a ser desenhada por trás só nos últimos segundos desta.

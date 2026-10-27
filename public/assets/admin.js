@@ -646,6 +646,10 @@ $('formCotacao').addEventListener('submit', (e) => {
 
 function preencherAjustes() {
   const o = estado.tela.opcoes || {};
+  mostrarEstadoRegistro();
+  $('textoRegistro').hidden = true;
+  $('copiarRegistro').hidden = true;
+  $('limparRegistro').hidden = true;
   $('opDireto').checked = o.direto === true;
   $('opPreparo').value = o.preparo ?? '';
   $('opQuadros').value = o.quadros ?? '';
@@ -654,6 +658,8 @@ function preencherAjustes() {
 
 function lerAjustes() {
   const o = {};
+  const atual = estado.tela.opcoes || {};
+  if (atual.registroAte > Date.now()) o.registroAte = atual.registroAte;
   if ($('opDireto').checked) o.direto = true;
   if ($('opPreparo').value !== '') o.preparo = numero($('opPreparo').value, 15, 0, 120);
   if ($('opQuadros').value !== '') o.quadros = numero($('opQuadros').value, 8, 2, 12);
@@ -662,3 +668,47 @@ function lerAjustes() {
 }
 
 for (const id of ['opDireto', 'opPreparo', 'opQuadros']) $(id).addEventListener('change', lerAjustes);
+
+// ---------- registro (log) da TV ----------
+
+function mostrarEstadoRegistro() {
+  const ate = (estado.tela.opcoes || {}).registroAte;
+  if (ate > Date.now()) {
+    const hora = new Date(ate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    mensagem($('estadoRegistro'), `● Gravando até ${hora}. As TVs começam a enviar em até 1 minuto (a cada 30 s).`, 'ok');
+    $('gravarRegistro').textContent = 'Parar de gravar';
+  } else {
+    mensagem($('estadoRegistro'), '');
+    $('gravarRegistro').textContent = 'Gravar registro por 1 hora';
+  }
+}
+
+$('gravarRegistro').addEventListener('click', () => {
+  const o = { ...(estado.tela.opcoes || {}) };
+  if (o.registroAte > Date.now()) delete o.registroAte;
+  else o.registroAte = Date.now() + 3600000;
+  estado.tela.opcoes = o;
+  alterado();
+  mostrarEstadoRegistro();
+});
+
+async function carregarRegistro() {
+  try {
+    const { linhas } = await api('GET', '/api/registro/' + estado.tela.codigo);
+    $('textoRegistro').textContent = linhas.length ? linhas.join('\n') : 'Nada gravado ainda. Ligue a gravação e espere 1 ou 2 minutos.';
+    $('textoRegistro').hidden = false;
+    $('copiarRegistro').hidden = !linhas.length;
+    $('limparRegistro').hidden = !linhas.length;
+    $('textoRegistro').scrollTop = $('textoRegistro').scrollHeight;
+  } catch (err) {
+    mensagem($('estadoRegistro'), err.message);
+  }
+}
+
+$('verRegistro').addEventListener('click', carregarRegistro);
+$('copiarRegistro').addEventListener('click', (e) => copiar($('textoRegistro').textContent, e.currentTarget));
+$('limparRegistro').addEventListener('click', async () => {
+  if (!confirm('Apagar o registro gravado desta tela?')) return;
+  await api('DELETE', '/api/registro/' + estado.tela.codigo);
+  await carregarRegistro();
+});

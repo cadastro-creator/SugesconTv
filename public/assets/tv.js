@@ -152,6 +152,74 @@
     var opcoes = lerOpcoes(cache);
     var opcoesAplicadas = chaveOpcoes(opcoes);
 
+    // ---------- registro (log) para diagnóstico: ligado no painel por até 2 h ----------
+    var registroAte = opcoes.registroAte || 0;
+    var fila = [];
+    var contando = false;
+    var quadrosPai = 0;
+    function registrando() {
+      return registroAte > new Date().getTime();
+    }
+    function hhmmss() {
+      var d = new Date();
+      return doisDigitos(d.getHours()) + ':' + doisDigitos(d.getMinutes()) + ':' + doisDigitos(d.getSeconds());
+    }
+    function log(texto) {
+      if (!registrando()) return;
+      fila.push(hhmmss() + ' ' + texto);
+      if (fila.length > 300) fila.shift();
+    }
+    function enviarRegistro() {
+      if (!fila.length || !registrando()) return;
+      var linhas = fila;
+      fila = [];
+      var x = new XMLHttpRequest();
+      x.open('POST', '/api/registro/' + codigo, true);
+      x.setRequestHeader('Content-Type', 'application/json');
+      x.onreadystatechange = function () {
+        if (x.readyState === 4 && x.status === 0) fila = linhas.concat(fila).slice(-300); // sem rede: tenta depois
+      };
+      x.send(JSON.stringify({ linhas: linhas }));
+    }
+    // Mede se a animação roda na página da TV (quadros por segundo).
+    function contarQuadros() {
+      quadrosPai++;
+      if (registrando() && window.requestAnimationFrame) window.requestAnimationFrame(contarQuadros);
+      else contando = false;
+    }
+    function iniciarRegistro() {
+      log('INICIO ' + navigator.userAgent);
+      log(
+        'tela ' + window.innerWidth + 'x' + window.innerHeight + ' densidade ' + (window.devicePixelRatio || 1) +
+          ' | ajustes ' + JSON.stringify(opcoes) + ' | link ' + window.location.search
+      );
+      if (!contando && window.requestAnimationFrame) {
+        contando = true;
+        quadrosPai = 0;
+        window.requestAnimationFrame(contarQuadros);
+      }
+    }
+    setInterval(enviarRegistro, 30000);
+    setInterval(function () {
+      if (!registrando()) return;
+      log(
+        'animacao da pagina-TV ' + Math.round(quadrosPai / 60) + ' quadros/s | visivel=' + (document.visibilityState || '?') +
+          ' foco=' + (document.hasFocus ? document.hasFocus() : '?')
+      );
+      quadrosPai = 0;
+    }, 60000);
+    window.onerror = function (msg, origem, linha) {
+      log('ERRO ' + msg + ' ' + (origem || '') + ':' + (linha || ''));
+    };
+    document.addEventListener('visibilitychange', function () {
+      log('visibilidade ' + document.visibilityState);
+    }, false);
+    // A tela "Diagnóstico da TV" informa quantos quadros/s a animação roda dentro dela.
+    window.addEventListener('message', function (e) {
+      if (e.origin === window.location.origin && e.data && e.data.sugescontvDiag) log('diagnostico ' + e.data.sugescontvDiag);
+    }, false);
+    if (registrando()) iniciarRegistro();
+
     var player = new window.PainelPlayer($('palco'), {
       maxQuadros: parseInt(parametro('quadros'), 10) || opcoes.quadros || 0,
       // ?direto=1: abre cada página na hora, sem pré-carregar nem esconder (teste/compatibilidade).
@@ -170,6 +238,7 @@
         }
       },
       offline: semConexao,
+      aoEvento: log,
       aoVazio: function (vazio) {
         if (vazio && naoEncontrada) mensagem('Tela "' + codigo + '" não encontrada. Confira o código no painel de gestão.');
         else if (vazio) mensagem('Esta tela ainda não tem dashboards ativos. Adicione itens no painel de gestão.');
@@ -244,10 +313,20 @@
         if (xhr.status === 200) {
           falhaRede = false;
           naoEncontrada = false;
+          // Gravação do registro ligada/desligada no painel.
+          var mr = /"registroAte":(\d+)/.exec(xhr.responseText);
+          var novoAte = mr ? parseInt(mr[1], 10) : 0;
+          if (novoAte !== registroAte) {
+            var estava = registrando();
+            registroAte = novoAte;
+            if (!estava && registrando()) iniciarRegistro();
+          }
           // "Reiniciar TVs" no painel: recarrega quando o pedido muda.
           var pedido = (/"reiniciarEm":"([^"]*)"/.exec(xhr.responseText) || [])[1] || '';
           if (reinicioBase === null) reinicioBase = pedido;
           else if (pedido !== reinicioBase) {
+            log('reiniciando (pedido do painel)');
+            enviarRegistro();
             gravarCache(chaveCache, xhr.responseText);
             reiniciar();
             return;

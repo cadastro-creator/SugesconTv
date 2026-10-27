@@ -278,6 +278,25 @@ try {
   await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
   passo('ajustes da TV no painel (modo direto) chegam à TV sem mexer no link');
 
+  // Registro (log): liga no painel, a TV envia e o painel mostra.
+  await admin.click('#gravarRegistro');
+  await admin.waitForSelector('#estadoRegistro:has-text("Gravando até")');
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  const tvLog = await contexto.newPage();
+  vigiar(tvLog, 'tv-registro');
+  await tvLog.goto(`${BASE}/tv?tela=${codigo}&preparo=2`);
+  await tvLog.waitForTimeout(36000);
+  await admin.click('#verRegistro');
+  await admin.waitForSelector('#textoRegistro:not([hidden])');
+  const textoLog = await admin.locator('#textoRegistro').innerText();
+  assert.match(textoLog, /INICIO Mozilla/);
+  assert.match(textoLog, /carregou https:\/\/.+ em [\d.]+ s/);
+  assert.match(textoLog, /exibindo https:\/\//);
+  await tvLog.close();
+  await admin.click('#gravarRegistro');
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  passo('registro (log) da TV gravado e exibido no painel');
+
   const cot = await contexto.newPage();
   vigiar(cot, 'cotacoes');
   const respCot = await cot.goto(`${BASE}/cotacoes?ativos=cobre,aluminio,dolar`);

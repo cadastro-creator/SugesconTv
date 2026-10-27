@@ -101,6 +101,18 @@
           <label class="linha-ajuste">Tempo de preparo escondido <input id="opPreparo" type="number" min="0" max="120" placeholder="15"> segundos</label>
           <label class="linha-ajuste">Páginas guardadas na memória <input id="opQuadros" type="number" min="2" max="12" placeholder="8"> (menos = TV mais leve)</label>
           <p class="dica">Valem para o app e para o navegador. As TVs recarregam sozinhas para aplicar (até 1 minuto).</p>
+          <div class="registro">
+            <strong>Registro (log) da TV</strong>
+            <p class="dica">Grava o que acontece nas TVs desta tela (páginas carregadas, exibidas, erros e se a animação roda), para descobrir problemas.</p>
+            <div class="em-linha">
+              <button id="gravarRegistro" class="botao pequeno" type="button">Gravar registro por 1 hora</button>
+              <button id="verRegistro" class="botao pequeno" type="button">Ver registro</button>
+              <button id="copiarRegistro" class="botao pequeno" type="button" hidden>Copiar</button>
+              <button id="limparRegistro" class="botao pequeno perigo" type="button" hidden>Limpar</button>
+            </div>
+            <p id="estadoRegistro" class="msg"></p>
+            <pre id="textoRegistro" class="texto-registro" hidden></pre>
+          </div>
         </details>
         <p class="dica">A prévia mostra a página exatamente como na TV. A “Prévia da sequência” roda a tela inteira com 5 s por página.</p>
       </div>

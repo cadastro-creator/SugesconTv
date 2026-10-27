@@ -28,7 +28,11 @@ export function criarKvMemoria(arquivo) {
       return tipo === 'json' ? JSON.parse(d.valor) : d.valor;
     },
     async put(k, valor, op = {}) {
-      dados[k] = { valor: String(valor), metadata: op.metadata || null, expiration: op.expiration || null };
+      dados[k] = {
+        valor: String(valor),
+        metadata: op.metadata || null,
+        expiration: op.expiration || (op.expirationTtl ? Date.now() / 1000 + op.expirationTtl : null)
+      };
       salvar();
     },
     async delete(k) {

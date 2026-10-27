@@ -267,3 +267,23 @@ test('ajustes da TV por tela: validados, salvos e enviados à TV', async () => {
   await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: {} }, cookie });
   assert.deepEqual((await (await pedir(env, 'GET', '/api/tv/' + codigo)).json()).opcoes, {});
 });
+
+test('registro (log) da TV: só grava com a gravação ligada; leitura só com login', async () => {
+  const env = ambiente();
+  const cookie = await entrar(env);
+  const { codigo } = await (await pedir(env, 'POST', '/api/telas', { corpo: { nome: 'T' }, cookie })).json();
+  const enviar = (linhas) => pedir(env, 'POST', '/api/registro/' + codigo, { corpo: { linhas } });
+  assert.equal((await enviar(['a'])).status, 409);
+  const ate = Date.now() + 3600000;
+  const r = await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: { registroAte: ate } }, cookie });
+  assert.equal((await r.json()).opcoes.registroAte, ate);
+  assert.equal((await enviar(['12:00:00 início', 'linha\u0007 2'])).status, 200);
+  assert.equal((await pedir(env, 'GET', '/api/registro/' + codigo)).status, 401);
+  const lidas = await (await pedir(env, 'GET', '/api/registro/' + codigo, { cookie })).json();
+  assert.deepEqual(lidas.linhas, ['12:00:00 início', 'linha  2']);
+  await pedir(env, 'DELETE', '/api/registro/' + codigo, { corpo: {}, cookie });
+  assert.deepEqual((await (await pedir(env, 'GET', '/api/registro/' + codigo, { cookie })).json()).linhas, []);
+  // Horário muito no futuro é recusado (máximo 2 h).
+  const longe = await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: { registroAte: Date.now() + 10 * 3600000 } }, cookie });
+  assert.equal((await longe.json()).opcoes.registroAte, undefined);
+});

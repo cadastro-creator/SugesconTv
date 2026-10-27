@@ -158,8 +158,13 @@ export function validarOpcoes(o) {
   if (o.direto === true) r.direto = true;
   if (o.preparo !== null && o.preparo !== undefined && o.preparo !== '') r.preparo = inteiro(o.preparo, 15, 0, 120);
   if (o.quadros !== null && o.quadros !== undefined && o.quadros !== '') r.quadros = inteiro(o.quadros, 8, 2, 12);
+  // Registro (log) da TV ligado até este horário (no máximo 2 h à frente).
+  const ate = Number(o.registroAte);
+  if (Number.isFinite(ate) && ate > Date.now() && ate <= Date.now() + 2 * 3600000) r.registroAte = Math.round(ate);
   return r;
 }
+
+const MAX_LINHAS_REGISTRO = 1500;
 
 // ---------- roteamento ----------
 
@@ -237,6 +242,24 @@ export async function tratar(req, env, opcoes = {}) {
     }
   }
 
+  // Registro (log) enviado pela TV: só aceito enquanto a gravação está ligada no painel.
+  const reg = caminho.match(/^\/api\/registro\/([A-Za-z0-9]+)$/);
+  if (reg && metodo === 'POST') {
+    const tela = await lerTela(kv, reg[1].toUpperCase());
+    if (!tela) return falha(404, 'Tela não encontrada.');
+    if (!(tela.opcoes && tela.opcoes.registroAte > Date.now())) return falha(409, 'Registro desligado.');
+    const corpo = await lerJson(req);
+    const novas = (corpo && Array.isArray(corpo.linhas) ? corpo.linhas : [])
+      .slice(0, 300)
+      .map((l) => String(l).replace(/[\u0000-\u001f]/g, ' ').slice(0, 400));
+    if (!novas.length) return json({ ok: true });
+    const antigas = (await kv.get('registro:' + tela.codigo, 'json')) || [];
+    const linhas = antigas.concat(novas).slice(-MAX_LINHAS_REGISTRO);
+    // Some sozinho em 7 dias.
+    await kv.put('registro:' + tela.codigo, JSON.stringify(linhas), { expirationTtl: 7 * 86400 });
+    return json({ ok: true });
+  }
+
   if (caminho === '/api/login' && metodo === 'POST') {
     const ip = req.headers.get('cf-connecting-ip') || 'desconhecido';
     const t = await lerTentativas(kv, ip);
@@ -310,6 +333,16 @@ export async function tratar(req, env, opcoes = {}) {
     }
     if (metodo === 'DELETE') {
       await kv.delete('tela:' + tela.codigo);
+      return json({ ok: true });
+    }
+    return falha(405, 'Método não permitido.');
+  }
+
+  if (reg) {
+    const codigo = reg[1].toUpperCase();
+    if (metodo === 'GET') return json({ linhas: (await kv.get('registro:' + codigo, 'json')) || [] });
+    if (metodo === 'DELETE') {
+      await kv.delete('registro:' + codigo);
       return json({ ok: true });
     }
     return falha(405, 'Método não permitido.');
