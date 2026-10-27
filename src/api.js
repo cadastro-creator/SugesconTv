@@ -151,6 +151,16 @@ export function validarItens(itens) {
   });
 }
 
+// Ajustes da TV por tela (definidos no painel; valem também para o app, que não aceita parâmetros no link).
+export function validarOpcoes(o) {
+  const r = {};
+  if (!o || typeof o !== 'object') return r;
+  if (o.direto === true) r.direto = true;
+  if (o.preparo !== null && o.preparo !== undefined && o.preparo !== '') r.preparo = inteiro(o.preparo, 15, 0, 120);
+  if (o.quadros !== null && o.quadros !== undefined && o.quadros !== '') r.quadros = inteiro(o.quadros, 8, 2, 12);
+  return r;
+}
+
 // ---------- roteamento ----------
 
 async function lerJson(req) {
@@ -210,7 +220,8 @@ export async function tratar(req, env, opcoes = {}) {
       nome: tela.nome,
       itens: tela.itens,
       atualizadoEm: tela.atualizadoEm,
-      reiniciarEm: tela.reiniciarEm || null
+      reiniciarEm: tela.reiniciarEm || null,
+      opcoes: tela.opcoes || {}
     });
   }
 
@@ -287,6 +298,7 @@ export async function tratar(req, env, opcoes = {}) {
       if (corpo.nome !== undefined) tela.nome = limparNome(corpo.nome, tela.nome);
       // Pedido para as TVs desta tela recarregarem a página (aplicado na próxima consulta).
       if (corpo.reiniciar === true) tela.reiniciarEm = new Date().toISOString();
+      if (corpo.opcoes !== undefined) tela.opcoes = validarOpcoes(corpo.opcoes);
       if (corpo.itens !== undefined) {
         try {
           tela.itens = validarItens(corpo.itens);

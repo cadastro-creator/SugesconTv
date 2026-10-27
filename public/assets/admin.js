@@ -211,6 +211,7 @@ async function abrirEditor(codigo) {
   history.replaceState(null, '', '#tela=' + codigo);
   estado.sel = estado.tela.itens.length ? { item: 0, pagina: 0 } : null;
   $('editorNome').textContent = estado.tela.nome;
+  preencherAjustes();
   status('✓ Tudo salvo', 'salvo');
   mostrar('telaEditor');
   desenharItens();
@@ -256,9 +257,10 @@ async function salvarAgora() {
   if (!estado.sujo || !estado.tela) return true;
   estado.sujo = false;
   const { codigo, itens } = estado.tela;
+  const opcoes = estado.tela.opcoes || {};
   status('⟳ Salvando…', 'pendente');
   let ok = true;
-  estado.salvando = api('PUT', '/api/telas/' + codigo, { itens })
+  estado.salvando = api('PUT', '/api/telas/' + codigo, { itens, opcoes })
     .then(() => {
       if (!estado.sujo) status(`✓ Tudo salvo às ${horaAgora()} · as TVs mostram em até 1 minuto`, 'salvo');
     })
@@ -639,3 +641,24 @@ $('formCotacao').addEventListener('submit', (e) => {
   alterado();
   selecionar(estado.tela.itens.length - 1, 0);
 });
+
+// ---------- ajustes da TV (por tela) ----------
+
+function preencherAjustes() {
+  const o = estado.tela.opcoes || {};
+  $('opDireto').checked = o.direto === true;
+  $('opPreparo').value = o.preparo ?? '';
+  $('opQuadros').value = o.quadros ?? '';
+  $('ajustesTv').open = !!(o.direto || o.preparo !== undefined || o.quadros !== undefined);
+}
+
+function lerAjustes() {
+  const o = {};
+  if ($('opDireto').checked) o.direto = true;
+  if ($('opPreparo').value !== '') o.preparo = numero($('opPreparo').value, 15, 0, 120);
+  if ($('opQuadros').value !== '') o.quadros = numero($('opQuadros').value, 8, 2, 12);
+  estado.tela.opcoes = o;
+  alterado();
+}
+
+for (const id of ['opDireto', 'opPreparo', 'opQuadros']) $(id).addEventListener('change', lerAjustes);

@@ -151,3 +151,7 @@ summary { cursor: pointer; color: var(--primaria); }
 .cotacao-livre { margin-top: 10px; }
 .cotacao-livre input { font-size: 14px; }
 .cotacao-livre #nomeCotacao { flex: 0 1 180px; min-width: 140px; }
+.ajustes-tv { margin-top: 12px; font-size: 14px; }
+.ajustes-tv summary { font-weight: 600; }
+.linha-ajuste { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.linha-ajuste input[type="number"] { width: 80px; }

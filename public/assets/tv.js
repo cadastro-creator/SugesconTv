@@ -136,10 +136,33 @@
     var ultimaLista = null;
     var naoEncontrada = false;
     var jaMostrou = false;
+
+    // Ajustes da TV: vêm do painel (por tela) e podem ser trocados por parâmetros no link.
+    function lerOpcoes(texto) {
+      try {
+        return (JSON.parse(texto) || {}).opcoes || {};
+      } catch (e) {
+        return {};
+      }
+    }
+    function chaveOpcoes(o) {
+      return [o.direto ? 1 : 0, o.preparo === undefined ? '' : o.preparo, o.quadros === undefined ? '' : o.quadros].join('|');
+    }
+    var cache = lerCache(chaveCache);
+    var opcoes = lerOpcoes(cache);
+    var opcoesAplicadas = chaveOpcoes(opcoes);
+
     var player = new window.PainelPlayer($('palco'), {
-      maxQuadros: parseInt(parametro('quadros'), 10) || 0,
+      maxQuadros: parseInt(parametro('quadros'), 10) || opcoes.quadros || 0,
+      // ?direto=1: abre cada página na hora, sem pré-carregar nem esconder (teste/compatibilidade).
+      direto: parametro('direto') === '1' || opcoes.direto === true,
       // ?preparo=N: segundos mínimos desenhando a página escondida antes de mostrar (padrão 15).
-      preparoMinimo: parametro('preparo') !== '' ? (parseInt(parametro('preparo'), 10) || 0) * 1000 : -1,
+      preparoMinimo:
+        parametro('preparo') !== ''
+          ? (parseInt(parametro('preparo'), 10) || 0) * 1000
+          : opcoes.preparo >= 0
+            ? opcoes.preparo * 1000
+            : -1,
       aoMostrar: function () {
         if (!jaMostrou) {
           jaMostrou = true;
@@ -163,6 +186,11 @@
         return;
       }
       ultimaLista = texto;
+      // Ajustes da TV mudaram no painel: recarrega a página para aplicar.
+      if (chaveOpcoes((dados && dados.opcoes) || {}) !== opcoesAplicadas) {
+        reiniciar();
+        return;
+      }
       if (dados && dados.nome) document.title = dados.nome + ' - SugesconTv';
       player.definirLista((dados && dados.itens) || []);
     }
@@ -239,7 +267,6 @@
       xhr.send();
     }
 
-    var cache = lerCache(chaveCache);
     if (cache) aplicar(cache);
     player.iniciar();
     buscar();

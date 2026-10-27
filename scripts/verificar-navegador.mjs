@@ -205,6 +205,23 @@ try {
   await economica.close();
   passo('?quadros=2 limita a memória e continua girando');
 
+  // Modo direto: sem pré-carregar; no máximo a página atual e a que está saindo.
+  const direto = await contexto.newPage();
+  vigiar(direto, 'tv-direto');
+  await direto.goto(`${BASE}/tv?tela=${codigo}&direto=1`);
+  const seqDireto = [];
+  const t2 = Date.now();
+  while (seqDireto.length < 4 && Date.now() - t2 < 40000) {
+    assert.equal(await direto.locator('iframe.pnt-preparando').count(), 0, 'nada preparado escondido');
+    assert.ok((await direto.locator('iframe').count()) <= 2, 'no máximo 2 iframes');
+    const src = await direto.locator('iframe.pnt-visivel').getAttribute('src').catch(() => null);
+    if (src && src !== seqDireto[seqDireto.length - 1]) seqDireto.push(src);
+    await direto.waitForTimeout(200);
+  }
+  assert.equal(seqDireto.length, 4, 'modo direto gira as páginas');
+  await direto.close();
+  passo('?direto=1 abre cada página na hora, sem pré-carregar');
+
   // "Reiniciar TVs" no painel: a TV recarrega a página na próxima consulta (até 1 min).
   await tv.evaluate(() => (window.__antesDoReinicio = true));
   await admin.click('.tela .botao.principal');
@@ -242,6 +259,25 @@ try {
   await inexistente.waitForSelector('#mensagem:has-text("não encontrada")');
   passo('código inexistente mostra aviso');
 
+  // Ajustes da TV no painel (valem para o app): modo direto ligado pela tela.
+  if (await admin.locator('#telaEditor').isHidden()) await admin.click('.tela .botao.principal');
+  await admin.waitForSelector('#telaEditor:not([hidden])');
+  await admin.click('#ajustesTv summary');
+  await admin.check('#opDireto');
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  const tvOp = await contexto.newPage();
+  vigiar(tvOp, 'tv-opcoes');
+  await tvOp.goto(`${BASE}/tv?tela=${codigo}`);
+  await tvOp.waitForSelector('iframe.pnt-visivel');
+  for (let i = 0; i < 30; i++) {
+    assert.equal(await tvOp.locator('iframe.pnt-preparando').count(), 0, 'modo direto vindo do painel');
+    await tvOp.waitForTimeout(300);
+  }
+  await tvOp.close();
+  await admin.uncheck('#opDireto');
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  passo('ajustes da TV no painel (modo direto) chegam à TV sem mexer no link');
+
   const cot = await contexto.newPage();
   vigiar(cot, 'cotacoes');
   const respCot = await cot.goto(`${BASE}/cotacoes?ativos=cobre,aluminio,dolar`);
@@ -254,6 +290,15 @@ try {
   assert.match(textoCot, /R\$ 81\.240 \/t/);
   if (process.env.CAPTURAS) await cot.screenshot({ path: process.env.CAPTURAS + '/cotacoes.png' });
   passo('tela de cotações: cobre e alumínio em US$/t e R$/t');
+
+  const diag = await contexto.newPage();
+  vigiar(diag, 'diagnostico');
+  const respDiag = await diag.goto(`${BASE}/diagnostico`);
+  assert.match(respDiag.headers()['content-security-policy'], /frame-ancestors 'self'/);
+  await diag.waitForSelector('#testeSvg svg path');
+  assert.match(await diag.locator('#itens').innerText(), /Chrome versão \d+/);
+  if (process.env.CAPTURAS) await diag.screenshot({ path: process.env.CAPTURAS + '/diagnostico.png' });
+  passo('tela de diagnóstico mostra versão do navegador e testes de gráfico');
 
   // Ignora erros de rede do teste offline.
   const reais = problemas.filter((p) => !/ERR_INTERNET_DISCONNECTED|net::ERR/.test(p));

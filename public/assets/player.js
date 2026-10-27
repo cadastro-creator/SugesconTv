@@ -18,6 +18,8 @@
  *   segundosFixos: número - ignora o tempo de cada página (prévia acelerada)
  *   maxQuadros: número - máximo de páginas mantidas carregadas (padrão 8, mínimo 2)
  *   preparoMinimo: ms - tempo mínimo desenhando escondida antes de aparecer (padrão 15000)
+ *   direto: true - modo direto: abre cada página na hora, na frente, sem pré-carregar nem
+ *           esconder (igual a abrir o link num navegador). Para sites que não montam escondidos.
  *   offline: function() -> true quando sem conexão (só gira entre páginas já carregadas)
  *   aoMostrar: function(pagina) - chamada quando uma página aparece
  *   aoVazio: function(vazio) - chamada quando a lista fica vazia/deixa de estar
@@ -101,6 +103,8 @@
     this.op = opcoes || {};
     this.limite = Math.max(2, this.op.maxQuadros || LIMITE_PADRAO);
     this.preparoMin = this.op.preparoMinimo >= 0 ? this.op.preparoMinimo : PREPARO_PADRAO_MS;
+    this.direto = !!this.op.direto;
+    if (this.direto) this.limite = 2;
     this.seq = [];
     this.pendente = null;
     this.pos = -1;
@@ -227,7 +231,7 @@
 
   // Pré-carrega a próxima página ainda não carregada, uma de cada vez.
   PainelPlayer.prototype._preaquecer = function () {
-    if (!this.rodando || this._offline() || !this.seq.length) return;
+    if (this.direto || !this.rodando || this._offline() || !this.seq.length) return;
     var url, i, pg;
     for (url in this.quadros) {
       if (this.quadros.hasOwnProperty(url) && !this.quadros[url].pronto) return; // já há uma carregando
@@ -287,7 +291,7 @@
   };
 
   PainelPlayer.prototype._verificarRecargas = function () {
-    if (!this.rodando || this._offline()) return;
+    if (this.direto || !this.rodando || this._offline()) return; // no modo direto cada vez já abre de novo
     var maisAtrasado = null;
     var t = agora();
     for (var url in this.quadros) {
@@ -337,6 +341,11 @@
     var self = this;
     var n = this.seq.length;
     var q = this._quadro(this.seq[p]);
+    if (this.direto) {
+      // Modo direto: mostra já, carregando na frente de quem olha.
+      this._exibir(q, p);
+      return;
+    }
     if (q.pronto) {
       this._mostrarPreparada(q, p);
       return;
@@ -396,6 +405,7 @@
   // Nos últimos segundos da atual, a seguinte começa a ser desenhada por trás.
   PainelPlayer.prototype._prepararProxima = function () {
     if (!this.rodando) return;
+    if (this.direto) return;
     this.prepararJa = true;
     var seq = this.pendente || this.seq;
     if (!seq.length) return;
@@ -430,7 +440,7 @@
         el.className = 'pnt-quadro pnt-saindo';
         setTimeout(function () {
           if (self.visivel === anterior || anterior.el !== el) return;
-          if (self.quadros[anterior.url] === anterior && self._naSequencia(anterior.url)) {
+          if (!self.direto && self.quadros[anterior.url] === anterior && self._naSequencia(anterior.url)) {
             el.className = 'pnt-quadro';
             if (self.prepararJa && self._ehProxima(anterior)) self._preparar(anterior);
           } else self._descartar(anterior);

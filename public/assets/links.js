@@ -199,6 +199,8 @@ export const MODELOS = [
   { id: 'cobre', nome: 'Cobre (US$/t e R$/t)', caminho: '/cotacoes?ativos=cobre' },
   { id: 'aluminio', nome: 'Alumínio (US$/t e R$/t)', caminho: '/cotacoes?ativos=aluminio' },
   { id: 'metais-dolar', nome: 'Cobre, Alumínio e Dólar', caminho: '/cotacoes?ativos=cobre,aluminio,dolar' },
+  // Tela de diagnóstico: versão do navegador da TV e teste de desenho de gráficos.
+  { id: 'diagnostico', nome: 'Diagnóstico da TV', caminho: '/diagnostico' },
   {
     id: 'cotacoes',
     nome: 'Quadro de cotações',
