@@ -10,6 +10,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -20,6 +21,7 @@ public class ConfigActivity extends Activity {
     private EditText campoSite;
     private EditText campoCodigo;
     private TextView aviso;
+    private CheckBox campoCompat;
 
     @Override
     protected void onCreate(Bundle estado) {
@@ -38,6 +40,14 @@ public class ConfigActivity extends Activity {
         caixa.addView(texto("Endereço do site (já vem preenchido; só mude se usar outro endereço)", 16, false));
         campoSite = campo(Config.site(this), InputType.TYPE_TEXT_VARIATION_URI);
         caixa.addView(campoSite);
+
+        campoCompat = new CheckBox(this);
+        campoCompat.setText("Compatibilidade de vídeo: desenhar sem aceleração. Ligue se gráficos (pizza, barras) "
+                + "não aparecem nesta TV. Pode ficar mais lento e o 3D pode não funcionar.");
+        campoCompat.setTextColor(Color.WHITE);
+        campoCompat.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        campoCompat.setChecked(Config.compatibilidade(this));
+        caixa.addView(campoCompat);
 
         aviso = texto("", 18, false);
         aviso.setTextColor(Color.rgb(255, 170, 160));
@@ -93,6 +103,7 @@ public class ConfigActivity extends Activity {
             return;
         }
         Config.salvar(this, site, codigo);
+        Config.salvarCompatibilidade(this, campoCompat.isChecked());
         Intent i = new Intent(this, MainActivity.class);
         i.putExtra("recarregar", true);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

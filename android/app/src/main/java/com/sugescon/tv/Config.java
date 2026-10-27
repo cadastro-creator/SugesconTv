@@ -30,6 +30,15 @@ final class Config {
         prefs(c).edit().putString("site", site).putString("codigo", codigo).apply();
     }
 
+    /** Compatibilidade de vídeo: desenha sem aceleração (para TVs que não pintam gráficos). */
+    static boolean compatibilidade(Context c) {
+        return prefs(c).getBoolean("compatibilidade", false);
+    }
+
+    static void salvarCompatibilidade(Context c, boolean ligado) {
+        prefs(c).edit().putBoolean("compatibilidade", ligado).apply();
+    }
+
     static String urlTv(Context c) {
         return site(c) + "/tv?tela=" + codigo(c);
     }

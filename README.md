@@ -100,7 +100,7 @@ As páginas ficam **carregadas em segundo plano**: enquanto uma página está na
 | **Página em branco ou erro na TV** | Confira na prévia do painel. Páginas que não carregam em 25 s são puladas. |
 | **“sem conexão” no canto da TV** | A TV perdeu a internet: continua mostrando a última página e volta sozinha. |
 | **Painel diz que falta `PAINEL_KV` ou `ADMIN_PASSWORD`** | Refaça os passos 4 e 5 da seção 1 e publique de novo. |
-| **Gráficos (barras, pizza, linhas) não aparecem na TV, só os números** | Coloque o modelo **Diagnóstico da TV** na tela: ele mostra a versão do navegador interno e testa gráficos. Se disser “desatualizado”, atualize o **Android System WebView** na Play Store (Google TV) ou o sistema (Fire TV). Se estiver atualizado, ligue **Ajustes desta TV → Modo direto** no editor da tela. |
+| **Gráficos (barras, pizza, linhas) não aparecem na TV, só os números** | Coloque o modelo **Diagnóstico da TV** na tela: ele mostra a versão do navegador interno e testa gráficos. Se disser “desatualizado”, atualize o **Android System WebView** na Play Store (Google TV) ou o sistema (Fire TV). Se a pizza de teste também não aparece, a TV não está pintando gráficos: no app, aperte **VOLTAR 3 vezes** e ligue **Compatibilidade de vídeo** (desenha sem aceleração; pode ficar mais lento e o 3D pode não funcionar). |
 | **TV não mostra a mudança** | Confira o selo verde “Tudo salvo” no painel e espere até 1 minuto. Se precisar, use **Reiniciar TVs**. |
 | **“Muitas tentativas”** | São 10 tentativas de senha a cada 15 min por endereço. Aguarde. |
 | **App não abre ao ligar a TV** | Escolha o SugesconTv como **tela inicial** (HOME). Alguns aparelhos bloqueiam abrir apps sozinhos. |

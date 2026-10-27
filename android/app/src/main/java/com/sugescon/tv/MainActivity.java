@@ -79,6 +79,7 @@ public class MainActivity extends Activity {
             }
         });
         setContentView(web);
+        aplicarCompatibilidade();
         ocultarBarras();
         web.loadUrl(Config.urlTv(this));
         handler.postDelayed(verificarAtualizacao, 20000);
@@ -94,6 +95,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         ocultarBarras();
+        aplicarCompatibilidade();
     }
 
     @Override
@@ -107,6 +109,13 @@ public class MainActivity extends Activity {
         handler.removeCallbacksAndMessages(null);
         if (web != null) web.destroy();
         super.onDestroy();
+    }
+
+    /** Desenho sem aceleração de vídeo: contorna TVs cuja GPU não pinta curvas e áreas grandes. */
+    private void aplicarCompatibilidade() {
+        if (web == null) return;
+        int tipo = Config.compatibilidade(this) ? View.LAYER_TYPE_SOFTWARE : View.LAYER_TYPE_NONE;
+        if (web.getLayerType() != tipo) web.setLayerType(tipo, null);
     }
 
     @SuppressWarnings("deprecation")
