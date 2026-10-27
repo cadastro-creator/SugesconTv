@@ -88,7 +88,7 @@ As páginas ficam **carregadas em segundo plano**: enquanto uma página está na
 **Gerar o APK (para quem mantém o projeto)** – no GitHub, **Settings → Secrets and variables → Actions**:
 1. Crie `ANDROID_KEYSTORE_PASSWORD` (uma senha forte), `ANDROID_KEY_PASSWORD` (**a mesma senha**) e `ANDROID_KEY_ALIAS` (ex.: `sugescontv`).
 2. Em **Actions → Gerar chave do APK → Run workflow**. Baixe o artefato `chave-android`, abra o `.txt` e cole o conteúdo no segredo `ANDROID_KEYSTORE_BASE64`. Apague o artefato. **Faça isso uma vez só**: trocar a chave impede a atualização automática das TVs.
-3. Para publicar uma versão: **Releases → Draft a new release → tag `v1.0.0`** (depois `v1.0.1`, `v1.1.0`…). O GitHub Actions compila, assina, anexa o APK à Release e copia para `/app` no site.
+3. Para publicar uma versão: **Actions → APK para TV → Run workflow** e digite a versão (ex.: `1.1.0`), ou **Releases → Draft a new release → tag `v1.1.0`**. O GitHub Actions compila, assina, anexa o APK à Release e copia para `/app` no site.
 
 ## 5) Solução de problemas
 

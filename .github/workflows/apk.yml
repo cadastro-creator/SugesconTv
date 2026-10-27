@@ -1,9 +1,15 @@
-# Compila, assina e publica o APK a cada tag v* (ex.: v1.0.0).
+# Compila, assina e publica o APK a cada tag v* (ex.: v1.0.0)
+# ou pelo botão Actions → "APK para TV" → Run workflow, informando a versão.
 name: APK para TV
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: 'Versão do app (ex.: 1.1.0)'
+        required: true
 
 permissions:
   contents: write
@@ -27,12 +33,15 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Versão a partir da tag
+      - name: Versão a partir da tag (ou do botão Run workflow)
+        env:
+          VERSAO_INFORMADA: ${{ github.event.inputs.versao }}
         run: |
-          VERSAO="${GITHUB_REF_NAME#v}"
+          if [ -n "$VERSAO_INFORMADA" ]; then VERSAO="${VERSAO_INFORMADA#v}"; else VERSAO="${GITHUB_REF_NAME#v}"; fi
           if ! [[ "$VERSAO" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            echo "::error::Use tags no formato v1.2.3 (recebido: $GITHUB_REF_NAME)"; exit 1
+            echo "::error::Use versões no formato 1.2.3 (recebido: $VERSAO)"; exit 1
           fi
+          echo "TAG=v$VERSAO" >> "$GITHUB_ENV"
           CODIGO=$(( BASH_REMATCH[1] * 10000 + BASH_REMATCH[2] * 100 + BASH_REMATCH[3] ))
           echo "VERSAO=$VERSAO" >> "$GITHUB_ENV"
           echo "CODIGO=$CODIGO" >> "$GITHUB_ENV"
@@ -64,10 +73,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/sugescontv.apk" --clobber
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$RUNNER_TEMP/sugescontv.apk" --clobber
           else
-            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/sugescontv.apk" \
+            gh release create "$TAG" "$RUNNER_TEMP/sugescontv.apk" --target "$GITHUB_SHA" \
               --title "SugesconTv $VERSAO" \
               --notes "APK para Android TV / Google TV / Fire TV (Fire OS). As TVs com o app instalado se atualizam sozinhas."
           fi
