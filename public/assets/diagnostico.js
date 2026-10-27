@@ -111,6 +111,66 @@
   } catch (e) {
     /* área fica vazia */
   }
+  // Teste 3: cada tipo de forma separado, numerado, para descobrir o que a TV não pinta.
+  function forma(numero, nome, desenhar, canvas) {
+    var caixa = document.createElement('div');
+    caixa.className = 'diag-forma';
+    var alvo;
+    if (canvas) {
+      alvo = document.createElement('canvas');
+      alvo.width = 100;
+      alvo.height = 100;
+    } else {
+      alvo = svg('svg', { viewBox: '0 0 100 100' });
+    }
+    caixa.appendChild(alvo);
+    caixa.appendChild(document.createTextNode(numero + '. ' + nome));
+    document.getElementById('formas').appendChild(caixa);
+    try {
+      desenhar(alvo);
+    } catch (e) {
+      caixa.appendChild(document.createTextNode(' (erro)'));
+    }
+  }
+  forma(1, 'Quadrado', function (s) {
+    s.appendChild(svg('rect', { x: 15, y: 15, width: 70, height: 70, fill: '#f39c12' }));
+  });
+  forma(2, 'Círculo', function (s) {
+    s.appendChild(svg('circle', { cx: 50, cy: 50, r: 38, fill: '#3498db' }));
+  });
+  forma(3, 'Fatia (arco)', function (s) {
+    s.appendChild(svg('path', { d: 'M50 50 L50 10 A40 40 0 0 1 90 50 Z', fill: '#e67e22' }));
+  });
+  forma(4, 'Curva', function (s) {
+    s.appendChild(svg('path', { d: 'M10 80 C30 0 70 0 90 80 Z', fill: '#2ecc71' }));
+  });
+  forma(5, 'Contorno', function (s) {
+    s.appendChild(svg('circle', { cx: 50, cy: 50, r: 36, fill: 'none', stroke: '#f5d58c', 'stroke-width': 10 }));
+  });
+  forma(6, 'Transparente', function (s) {
+    s.appendChild(svg('rect', { x: 15, y: 15, width: 70, height: 70, fill: '#e74c3c', 'fill-opacity': 0.6 }));
+  });
+  forma(7, 'Canvas círculo', function (c) {
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#9b59b6';
+    ctx.beginPath();
+    ctx.arc(50, 50, 38, 0, Math.PI * 2);
+    ctx.fill();
+  }, true);
+  forma(8, 'Animado', function (s) {
+    var r = svg('rect', { x: 15, y: 85, width: 70, height: 0, fill: '#1abc9c' });
+    s.appendChild(r);
+    var inicio = null;
+    function passo(t) {
+      if (!inicio) inicio = t;
+      var k = Math.min(1, (t - inicio) / 1500);
+      r.setAttribute('height', 70 * k);
+      r.setAttribute('y', 85 - 70 * k);
+      if (k < 1) window.requestAnimationFrame(passo);
+    }
+    if (window.requestAnimationFrame) window.requestAnimationFrame(passo);
+  });
+
   setTimeout(function () {
     window.location.reload();
   }, 60000);
