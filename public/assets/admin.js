@@ -392,12 +392,12 @@ function desenharItens() {
             'Recarregar a cada ',
             h('input', {
               type: 'number',
-              min: 1,
+              min: 5,
               max: 1440,
               value: item.recarregarMin,
               oninput: (e) => {
                 if (e.target.value === '') return;
-                item.recarregarMin = numero(e.target.value, 10, 1, 1440);
+                item.recarregarMin = numero(e.target.value, 10, 5, 1440);
                 alterado();
               },
               onchange: (e) => (e.target.value = item.recarregarMin)

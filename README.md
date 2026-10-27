@@ -37,7 +37,7 @@ Pronto: o painel fica em `https://<seu-projeto>.pages.dev/admin`. Cada commit no
 2. Em **Suas telas**, digite um nome (ex.: “Recepção”) e clique em **Criar tela**.
 3. No editor, cole o link do relatório em **Adicionar dashboard**. O sistema reconhece o tipo e converte para o formato de exibição.
 4. Para mostrar outras páginas do mesmo relatório, use **Adicionar página** dentro do item.
-5. Ajuste os **segundos** de cada página (padrão 30 s) e **recarregar a cada X minutos** (padrão 10).
+5. Ajuste os **segundos** de cada página (padrão 30 s) e **recarregar a cada X minutos** (padrão 10, mínimo 5 — recarregar mais que isso sobrecarrega a TV).
 6. Confira na **prévia** (16:9 ou 9:16) e em **Prévia da sequência** (5 s por página).
 7. **Salvamento:** tudo é salvo sozinho. O selo no topo mostra a situação: amarelo = salvando, verde = “Tudo salvo às HH:MM”, vermelho = não salvou (tenta de novo sozinho; há também o botão **Salvar agora**). As TVs buscam mudanças a cada 30 s e aplicam ao fim da página que está na tela (até 1 minuto).
 8. **Reiniciar TVs:** botão no topo do editor que recarrega a página em todas as TVs daquela tela (em até 30 s). As TVs também recarregam sozinhas quando o site é atualizado e todo dia às 4h.

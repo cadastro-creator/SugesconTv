@@ -35,6 +35,8 @@
   var PREPARO_PADRAO_MS = 15000; // tempo mínimo desenhando escondida antes de aparecer
   var PREPARO_INICIAL_MAX_MS = 8000; // primeira página (tela coberta por "Carregando…")
   var PREPARO_RECARGA_MIN_MS = 20000; // cópia nova da página que está na tela
+  var TEMPO_RECARGA_MS = 120000; // a cópia escondida pode demorar (TV lenta); não há pressa
+  var RECARGA_MINIMA_MS = 5 * 60000; // recarregar mais que isso só sobrecarrega a TV
 
   function agora() {
     return new Date().getTime();
@@ -259,12 +261,15 @@
     var self = this;
     if (q.novo || !q.el) return;
     this._ev('recarregando', q.url);
+    q.ultimaRecarga = agora();
     var limiteTempo = setTimeout(function () {
       if (q.novo === novo) {
+        // Não deu: mantém a cópia atual e só tenta de novo no próximo intervalo.
+        self._ev('recarga-desistiu', q.url, 'depois de ' + TEMPO_RECARGA_MS / 1000 + ' s');
         removerIframe(novo);
         q.novo = null;
       }
-    }, TEMPO_CARGA_MS);
+    }, TEMPO_RECARGA_MS);
     function trocar(el) {
       if (q.novo !== el || !self.rodando) return;
       var antigo = q.el;
@@ -307,9 +312,11 @@
     for (var url in this.quadros) {
       if (!this.quadros.hasOwnProperty(url)) continue;
       var q = this.quadros[url];
-      if (q.novo) return; // uma recarga de cada vez
-      if (!q.pronto || t - q.carregadoEm < q.recarregarMs) continue;
-      if (!maisAtrasado || q.carregadoEm < maisAtrasado.carregadoEm) maisAtrasado = q;
+      if (q.novo || !q.pronto) return; // uma carga/recarga de cada vez
+      var intervalo = Math.max(q.recarregarMs, RECARGA_MINIMA_MS);
+      var desde = Math.max(q.carregadoEm, q.ultimaRecarga || 0);
+      if (t - desde < intervalo) continue;
+      if (!maisAtrasado || desde < Math.max(maisAtrasado.carregadoEm, maisAtrasado.ultimaRecarga || 0)) maisAtrasado = q;
     }
     if (maisAtrasado) this._recarregar(maisAtrasado);
   };

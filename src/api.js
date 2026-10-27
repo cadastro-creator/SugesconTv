@@ -140,7 +140,7 @@ export function validarItens(itens) {
       id: /^[a-z0-9]{1,20}$/.test(item.id || '') ? item.id : Math.random().toString(36).slice(2, 10),
       tipo,
       nome: limparNome(item.nome, `Item ${i + 1}`),
-      recarregarMin: inteiro(item.recarregarMin, 10, 1, 1440),
+      recarregarMin: inteiro(item.recarregarMin, 10, 5, 1440),
       pausado: item.pausado === true,
       paginas: paginas.map((p, j) => {
         const v = validarEndereco(p && p.url);

@@ -137,7 +137,7 @@ test('telas: itens inválidos são recusados e valores fora da faixa são ajusta
     cookie
   });
   const it = (await ajustado.json()).itens[0];
-  assert.equal(it.recarregarMin, 1);
+  assert.equal(it.recarregarMin, 5);
   assert.equal(it.paginas[0].segundos, 5);
   assert.equal(it.paginas[1].segundos, 30);
 });
