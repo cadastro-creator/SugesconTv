@@ -82,6 +82,34 @@
   linha('Tela', window.innerWidth + ' × ' + window.innerHeight + ' (densidade ' + (window.devicePixelRatio || 1) + ')');
   linha('WebGL (3D)', webgl() ? 'sim' : 'não');
   linha('Recursos modernos', typeof Promise !== 'undefined' && typeof fetch !== 'undefined' && typeof IntersectionObserver !== 'undefined' && typeof ResizeObserver !== 'undefined' ? 'sim' : 'faltando');
+  // Recursos que motores de gráficos modernos usam (comparar TV x computador).
+  function tem(teste) {
+    try {
+      return !!teste();
+    } catch (e) {
+      return false;
+    }
+  }
+  var recursos = [
+    ['WebGPU', function () { return navigator.gpu; }],
+    ['WebGL 2', function () { return document.createElement('canvas').getContext('webgl2'); }],
+    ['OffscreenCanvas', function () { return typeof OffscreenCanvas !== 'undefined'; }],
+    ['Worker', function () { return typeof Worker !== 'undefined'; }],
+    ['WebAssembly', function () { return typeof WebAssembly !== 'undefined'; }],
+    ['SharedArrayBuffer', function () { return typeof SharedArrayBuffer !== 'undefined'; }],
+    ['structuredClone', function () { return typeof structuredClone !== 'undefined'; }],
+    ['Container queries', function () { return window.CSS && CSS.supports('container-type: inline-size'); }],
+    ['Path2D', function () { return typeof Path2D !== 'undefined'; }],
+    ['createImageBitmap', function () { return typeof createImageBitmap !== 'undefined'; }]
+  ];
+  var lista = [];
+  for (var r = 0; r < recursos.length; r++) lista.push(recursos[r][0] + (tem(recursos[r][1]) ? ' sim' : ' NÃO'));
+  linha('Recursos de gráficos', lista.join(' · '));
+  try {
+    window.parent.postMessage({ sugescontvDiag: 'recursos ' + lista.join(', ') }, window.location.origin);
+  } catch (e) {
+    /* fora da TV */
+  }
   linha('Identificação completa', ua);
 
   var veredito = document.getElementById('veredito');
