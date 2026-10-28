@@ -69,7 +69,7 @@ A TV mostra todas as páginas do item 1, depois todas as do item 2, e assim por 
 
 ## Modo imagem (fotos) — páginas pesadas sem pesar a TV
 
-Marque **Modo imagem** num item do editor: a TV passa a mostrar uma **foto** da página, tirada **a cada 15 minutos** (segunda a sexta, 7h às 19h, horário de Brasília) por um robô do GitHub (Actions → *Fotos do modo imagem*), em vez de abrir o site ao vivo. Fica levíssimo e funciona em qualquer TV; em troca, não é em tempo real e não tem animação. Os itens sem a marcação continuam ao vivo.
+Marque **Modo imagem** num item do editor: a TV passa a mostrar uma **foto** da página, tirada **a cada 15 minutos** (o robô espera a página parar de carregar: nada mudando na tela nem na rede por 10 s, até 2 min por página) (segunda a sexta, 7h às 19h, horário de Brasília) por um robô do GitHub (Actions → *Fotos do modo imagem*), em vez de abrir o site ao vivo. Fica levíssimo e funciona em qualquer TV; em troca, não é em tempo real e não tem animação. Os itens sem a marcação continuam ao vivo.
 
 Configuração (uma vez só): na lista de telas, abra **Configurar o modo imagem**, clique em **Mostrar chave → Copiar** e cadastre no GitHub em **Settings → Secrets and variables → Actions → New repository secret** com o nome `FOTOS_TOKEN`. Se trocar a senha do painel, a chave muda. Para rodar na hora: **Actions → Fotos do modo imagem → Run workflow**. Enquanto a primeira foto não existe, a TV mostra o site ao vivo.
 
