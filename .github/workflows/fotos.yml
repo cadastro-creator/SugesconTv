@@ -1,5 +1,8 @@
 # Modo imagem: fotografa as páginas marcadas no painel e envia ao site.
-# A cada 15 min, de segunda a sexta, das 7h às 18h45 (horário de Brasília = UTC-3).
+# De segunda a sexta, das 7h às 19h (horário de Brasília = UTC-3), a cada 15 min.
+# O GitHub atrasa ou pula muitos agendamentos, então cada execução fica ligada em
+# ciclo (fotos a cada 15 min, por até ~5h40) e os agendamentos só servem para
+# religar o ciclo quando ele termina. Execuções novas esperam a atual acabar.
 # Também dá para rodar na hora: Actions → "Fotos do modo imagem" → Run workflow.
 name: Fotos do modo imagem
 
@@ -13,12 +16,12 @@ permissions:
 
 concurrency:
   group: fotos
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   fotos:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,4 +39,15 @@ jobs:
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           FOTOS_TOKEN: ${{ secrets.FOTOS_TOKEN }}
-        run: node tirar-fotos.mjs
+        run: |
+          fim=$(( $(date +%s) + 340 * 60 ))
+          while :; do
+            if node tirar-fotos.mjs; then falhou=0; else falhou=1; fi
+            agora=$(date +%s)
+            # Próxima rodada no próximo múltiplo de 15 min; para às 22h UTC (19h em Brasília).
+            proxima=$(( (agora / 900 + 1) * 900 ))
+            if [ "$(date -u -d @$proxima +%H)" -ge 22 ] || [ "$(date -u -d @$proxima +%H)" -lt 10 ] || [ $proxima -ge $fim ]; then break; fi
+            echo "Próxima rodada às $(TZ=America/Sao_Paulo date -d @$proxima +%H:%M) (Brasília)."
+            sleep $(( proxima - agora ))
+          done
+          exit $falhou

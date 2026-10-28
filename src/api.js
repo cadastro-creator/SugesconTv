@@ -225,17 +225,27 @@ export async function tratar(req, env, opcoes = {}) {
   const foto = caminho.match(/^\/api\/foto\/([a-f0-9]{24})$/);
   if (foto) {
     if (metodo !== 'GET') return falha(405, 'Método não permitido.');
-    const r = await kv.getWithMetadata('foto:' + foto[1], 'arrayBuffer');
-    if (!r || !r.value) return falha(404, 'Foto ainda não tirada.');
-    return new Response(r.value, {
-      status: 200,
-      headers: {
-        'Content-Type': 'image/jpeg',
-        'Cache-Control': 'no-cache',
-        'X-Content-Type-Options': 'nosniff',
-        'X-Foto-Em': (r.metadata && r.metadata.em) || ''
-      }
-    });
+    // Cada TV pede a foto a cada minuto: uma cópia de 1 min no servidor poupa as leituras do KV.
+    const cache = typeof caches !== 'undefined' ? caches.default : null;
+    const chaveCache = new Request(url.origin + '/api/foto/' + foto[1]);
+    let resp = cache ? await cache.match(chaveCache) : null;
+    if (!resp) {
+      const r = await kv.getWithMetadata('foto:' + foto[1], 'arrayBuffer');
+      if (!r || !r.value) return falha(404, 'Foto ainda não tirada.');
+      resp = new Response(r.value, {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/jpeg',
+          'Cache-Control': 'public, max-age=60',
+          'X-Content-Type-Options': 'nosniff',
+          'X-Foto-Em': (r.metadata && r.metadata.em) || ''
+        }
+      });
+      if (cache) await cache.put(chaveCache, resp.clone());
+    }
+    resp = new Response(resp.body, resp);
+    resp.headers.set('Cache-Control', 'no-cache');
+    return resp;
   }
 
   // Robô das fotos (GitHub Actions): lista o que fotografar e envia as fotos.
