@@ -122,6 +122,21 @@ async function abrirLista() {
   if (location.hash.startsWith('#tela=')) history.replaceState(null, '', location.pathname);
 }
 
+// Chave do robô das fotos (modo imagem), para cadastrar no GitHub uma vez só.
+$('mostrarTokenFotos').addEventListener('click', async (e) => {
+  const botao = e.currentTarget;
+  try {
+    const { token } = await api('GET', '/api/fotos/token');
+    $('tokenFotos').textContent = token;
+    $('tokenFotos').hidden = false;
+    $('copiarTokenFotos').hidden = false;
+    botao.hidden = true;
+  } catch (err) {
+    mensagem($('msgLista'), err.message);
+  }
+});
+$('copiarTokenFotos').addEventListener('click', (e) => copiar($('tokenFotos').textContent, e.currentTarget));
+
 function desenharLista() {
   const lista = $('listaTelas');
   lista.replaceChildren();
@@ -386,6 +401,20 @@ function desenharItens() {
           'div',
           { class: 'item-opcoes' },
           item.pausado ? h('strong', {}, 'Pausado: não aparece na TV.') : null,
+          h(
+            'label',
+            { class: 'modo-imagem', title: 'A TV mostra uma foto da página, tirada a cada 15 min (seg–sex, 7h–19h). Mais leve; sem tempo real.' },
+            h('input', {
+              type: 'checkbox',
+              checked: item.imagem === true,
+              onchange: (e) => {
+                item.imagem = e.target.checked;
+                alterado();
+                desenharItens();
+              }
+            }),
+            ' Modo imagem (foto a cada 15 min)'
+          ),
           h(
             'label',
             {},

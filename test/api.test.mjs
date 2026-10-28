@@ -296,3 +296,39 @@ test('verificar: páginas do próprio painel são aceitas sem consultar a rede',
   });
   assert.equal(r.permitido, true);
 });
+
+test('modo imagem: chave do robô, lista de páginas, envio e leitura da foto, TV recebe a chave', async () => {
+  const { tokenFotos, chaveFoto } = await import('../src/fotos.js');
+  const env = ambiente();
+  const cookie = await entrar(env);
+  const { codigo } = await (await pedir(env, 'POST', '/api/telas', { corpo: { nome: 'T' }, cookie })).json();
+  const itens = [
+    { ...ITEM, nome: 'Foto', imagem: true },
+    { tipo: 'site', nome: 'Ao vivo', paginas: [{ url: 'https://ao-vivo.exemplo.com/' }] }
+  ];
+  await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { itens }, cookie });
+  const token = await tokenFotos(SENHA);
+  assert.equal((await (await pedir(env, 'GET', '/api/fotos/token', { cookie })).json()).token, token);
+  assert.equal((await pedir(env, 'GET', '/api/fotos/token')).status, 401);
+
+  const robo = (metodo, caminho, op = {}) =>
+    tratar(new Request(ORIGEM + caminho, { method: metodo, headers: { authorization: 'Bearer ' + (op.token ?? token), ...(op.headers || {}) }, body: op.body }), env);
+  assert.equal((await robo('GET', '/api/fotos/pendentes', { token: 'errado' })).status, 401);
+  const { paginas } = await (await robo('GET', '/api/fotos/pendentes')).json();
+  assert.deepEqual(paginas.map((p) => p.url).sort(), ITEM.paginas.map((p) => p.url).sort());
+  const chave = await chaveFoto(ITEM.paginas[0].url);
+  assert.equal(paginas.find((p) => p.url === ITEM.paginas[0].url).chave, chave);
+
+  assert.equal((await pedir(env, 'GET', '/api/foto/' + chave)).status, 404);
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+  assert.equal((await robo('PUT', '/api/fotos/' + chave, { body: jpeg, headers: { 'content-type': 'text/plain' } })).status, 415);
+  assert.equal((await robo('PUT', '/api/fotos/' + chave, { body: jpeg, headers: { 'content-type': 'image/jpeg' } })).status, 200);
+  const lida = await pedir(env, 'GET', '/api/foto/' + chave);
+  assert.equal(lida.status, 200);
+  assert.equal(lida.headers.get('content-type'), 'image/jpeg');
+  assert.deepEqual(new Uint8Array(await lida.arrayBuffer()), jpeg);
+
+  const tv = await (await pedir(env, 'GET', '/api/tv/' + codigo)).json();
+  assert.equal(tv.itens[0].paginas[0].foto, chave);
+  assert.equal(tv.itens[1].paginas[0].foto, undefined);
+});

@@ -1,0 +1,39 @@
+# Modo imagem: fotografa as páginas marcadas no painel e envia ao site.
+# A cada 15 min, de segunda a sexta, das 7h às 18h45 (horário de Brasília = UTC-3).
+# Também dá para rodar na hora: Actions → "Fotos do modo imagem" → Run workflow.
+name: Fotos do modo imagem
+
+on:
+  schedule:
+    - cron: '*/15 10-21 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fotos
+  cancel-in-progress: true
+
+jobs:
+  fotos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preparar o robô (usa o Chrome que já vem na máquina)
+        run: |
+          mkdir -p "$RUNNER_TEMP/robo" && cd "$RUNNER_TEMP/robo"
+          npm install --no-save --no-package-lock --silent playwright-core@1.56.1
+          cp "$GITHUB_WORKSPACE/scripts/tirar-fotos.mjs" .
+      - name: Tirar e enviar as fotos
+        working-directory: ${{ runner.temp }}/robo
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          FOTOS_TOKEN: ${{ secrets.FOTOS_TOKEN }}
+        run: node tirar-fotos.mjs

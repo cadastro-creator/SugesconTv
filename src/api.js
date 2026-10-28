@@ -3,6 +3,7 @@
 import { analisarLink, nomeSugerido, validarEndereco } from '../public/assets/links.js';
 import { verificarExibicao } from './verificar.js';
 import { lerLista, obterCotacoes } from './cotacoes.js';
+import { chaveFoto, marcarFotos, tokenFotos } from './fotos.js';
 
 const COOKIE = 'painel_sessao';
 const SESSAO_SEGUNDOS = 12 * 60 * 60;
@@ -142,6 +143,7 @@ export function validarItens(itens) {
       nome: limparNome(item.nome, `Item ${i + 1}`),
       recarregarMin: inteiro(item.recarregarMin, 10, 5, 1440),
       pausado: item.pausado === true,
+      imagem: item.imagem === true,
       paginas: paginas.map((p, j) => {
         const v = validarEndereco(p && p.url);
         if (!v.ok) throw new Error(`Item ${i + 1}, página ${j + 1}: ${v.erro}`);
@@ -216,6 +218,55 @@ export async function tratar(req, env, opcoes = {}) {
     return resp;
   }
 
+  // Foto de uma página em modo imagem (pública, como a lista da TV).
+  const foto = caminho.match(/^\/api\/foto\/([a-f0-9]{24})$/);
+  if (foto) {
+    if (metodo !== 'GET') return falha(405, 'Método não permitido.');
+    const r = await kv.getWithMetadata('foto:' + foto[1], 'arrayBuffer');
+    if (!r || !r.value) return falha(404, 'Foto ainda não tirada.');
+    return new Response(r.value, {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/jpeg',
+        'Cache-Control': 'no-cache',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Foto-Em': (r.metadata && r.metadata.em) || ''
+      }
+    });
+  }
+
+  // Robô das fotos (GitHub Actions): lista o que fotografar e envia as fotos.
+  if (caminho.startsWith('/api/fotos/') && caminho !== '/api/fotos/token') {
+    if (!env.ADMIN_PASSWORD) return falha(500, 'Senha não configurada.');
+    const enviado = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (!enviado || enviado !== (await tokenFotos(env.ADMIN_PASSWORD))) return falha(401, 'Chave das fotos inválida.');
+    if (caminho === '/api/fotos/pendentes' && metodo === 'GET') {
+      const urls = new Set();
+      let cursor;
+      do {
+        const r = await kv.list({ prefix: 'tela:', cursor });
+        for (const k of r.keys) {
+          const t = await kv.get(k.name, 'json');
+          for (const item of (t && t.itens) || []) {
+            if (item.imagem && !item.pausado) for (const p of item.paginas) urls.add(p.url);
+          }
+        }
+        cursor = r.list_complete ? null : r.cursor;
+      } while (cursor);
+      const paginas = await Promise.all([...urls].map(async (u) => ({ url: u, chave: await chaveFoto(u) })));
+      return json({ paginas });
+    }
+    const envio = caminho.match(/^\/api\/fotos\/([a-f0-9]{24})$/);
+    if (envio && metodo === 'PUT') {
+      if (!(req.headers.get('content-type') || '').startsWith('image/jpeg')) return falha(415, 'Envie a foto em JPEG.');
+      const bytes = await req.arrayBuffer();
+      if (!bytes.byteLength || bytes.byteLength > 5 * 1024 * 1024) return falha(413, 'Foto vazia ou grande demais (máx. 5 MB).');
+      await kv.put('foto:' + envio[1], bytes, { metadata: { em: new Date().toISOString() }, expirationTtl: 7 * 86400 });
+      return json({ ok: true });
+    }
+    return falha(404, 'Endereço da API não encontrado.');
+  }
+
   // Leitura pública da TV (somente leitura, sem login).
   const tv = caminho.match(/^\/api\/tv\/([A-Za-z0-9]+)$/);
   if (tv) {
@@ -225,7 +276,7 @@ export async function tratar(req, env, opcoes = {}) {
     return json({
       codigo: tela.codigo,
       nome: tela.nome,
-      itens: tela.itens,
+      itens: await marcarFotos(tela.itens),
       atualizadoEm: tela.atualizadoEm,
       reiniciarEm: tela.reiniciarEm || null,
       opcoes: tela.opcoes || {}
@@ -285,6 +336,9 @@ export async function tratar(req, env, opcoes = {}) {
   if (!(await sessaoValida(req, senha))) return falha(401, 'Faça login novamente.');
 
   if (caminho === '/api/sessao' && metodo === 'GET') return json({ ok: true });
+
+  // Chave do robô das fotos, para cadastrar no GitHub (só com login).
+  if (caminho === '/api/fotos/token' && metodo === 'GET') return json({ token: await tokenFotos(senha) });
 
   if (caminho === '/api/telas') {
     if (metodo === 'GET') {

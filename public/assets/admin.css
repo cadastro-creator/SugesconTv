@@ -158,3 +158,7 @@ summary { cursor: pointer; color: var(--primaria); }
 .registro { margin-top: 14px; border-top: 1px solid var(--borda); padding-top: 10px; }
 .texto-registro { max-height: 320px; overflow: auto; background: #0f1c2e; color: #d6e2f0; font-size: 12px; line-height: 1.5; padding: 10px; border-radius: 7px; white-space: pre-wrap; word-break: break-all; }
 .linha-ajuste select { font: inherit; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 7px; }
+.modo-imagem { display: inline-flex; gap: 6px; align-items: center; }
+.config-fotos { margin-top: 16px; font-size: 14px; }
+.config-fotos summary { font-weight: 600; }
+.token-fotos { font-size: 14px; padding: 6px 10px; background: #eef2f7; border-radius: 6px; word-break: break-all; }

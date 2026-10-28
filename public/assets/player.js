@@ -83,7 +83,8 @@
         pg = item.paginas[j];
         if (!pg || !pg.url) continue;
         seq.push({
-          url: pg.url,
+          // Modo imagem: mostra a foto da página (tirada de tempos em tempos), não o site ao vivo.
+          url: pg.foto ? '/foto?c=' + pg.foto + '&u=' + encodeURIComponent(pg.url) : pg.url,
           segundos: segundosFixos || pg.segundos || 30,
           recarregarMs: (item.recarregarMin || 10) * 60000,
           item: i,

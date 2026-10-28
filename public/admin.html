@@ -39,6 +39,20 @@
     <p class="dica">Uma <strong>tela</strong> é uma TV ou um grupo de TVs que mostram a mesma sequência. Abra o link da tela no navegador da TV (ou no app) e pronto.</p>
     <p id="msgLista" class="msg erro" role="alert"></p>
     <div id="listaTelas" class="grade"></div>
+    <details class="cartao config-fotos">
+      <summary>Configurar o modo imagem (fotos) — uma vez só</summary>
+      <p>Itens com <strong>Modo imagem</strong> aparecem na TV como uma foto tirada a cada 15 minutos (segunda a sexta, 7h às 19h) por um robô do GitHub. Para o robô poder enviar as fotos:</p>
+      <ol>
+        <li>Clique em <strong>Mostrar chave</strong> e depois em <strong>Copiar</strong>.</li>
+        <li>No GitHub do projeto: <strong>Settings → Secrets and variables → Actions → New repository secret</strong>. Nome: <code>FOTOS_TOKEN</code>. Valor: cole a chave.</li>
+        <li>Se trocar a senha do painel, a chave muda: repita os passos.</li>
+      </ol>
+      <div class="em-linha">
+        <button id="mostrarTokenFotos" class="botao pequeno" type="button">Mostrar chave</button>
+        <code id="tokenFotos" class="token-fotos" hidden></code>
+        <button id="copiarTokenFotos" class="botao pequeno" type="button" hidden>Copiar</button>
+      </div>
+    </details>
   </section>
 
   <section id="telaEditor" hidden>

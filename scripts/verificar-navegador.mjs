@@ -132,7 +132,7 @@ try {
   const tv = await contexto.newPage();
   vigiar(tv, 'tv');
   const respTv = await tv.goto(`${BASE}/tv?tela=${codigo}&relogio=1`);
-  assert.match(respTv.headers()['content-security-policy'], /frame-src https:/);
+  assert.match(respTv.headers()['content-security-policy'], /frame-src 'self' https:/);
   const ordem = [];
   const inicioTv = Date.now();
   while (ordem.length < 4 && Date.now() - inicioTv < 60000) {
@@ -313,6 +313,30 @@ try {
   await admin.click('#gravarRegistro');
   await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
   passo('registro (log) da TV gravado e exibido no painel');
+
+  // Modo imagem: item marcado no painel; o robô envia a foto; a TV mostra a foto.
+  if (await admin.locator('#telaEditor').isHidden()) await admin.click('.tela .botao.principal');
+  await admin.waitForSelector('#telaEditor:not([hidden])');
+  await admin.locator('.item[data-item="0"] .modo-imagem input').check();
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  const { token: tokenFotos } = await admin.evaluate(async () => (await fetch('/api/fotos/token')).json());
+  const pend = await (await fetch(BASE + '/api/fotos/pendentes', { headers: { Authorization: 'Bearer ' + tokenFotos } })).json();
+  assert.ok(pend.paginas.length >= 1, 'robô recebe as páginas em modo imagem');
+  const fotoPng = await admin.screenshot({ type: 'jpeg', quality: 60 });
+  for (const pg of pend.paginas) {
+    const r = await fetch(BASE + '/api/fotos/' + pg.chave, { method: 'PUT', headers: { Authorization: 'Bearer ' + tokenFotos, 'Content-Type': 'image/jpeg' }, body: fotoPng });
+    assert.equal(r.status, 200);
+  }
+  const tvFoto = await contexto.newPage();
+  vigiar(tvFoto, 'tv-foto');
+  await tvFoto.goto(`${BASE}/tv?tela=${codigo}&preparo=1`);
+  await tvFoto.waitForFunction(() => /^\/foto\?c=/.test((document.querySelector('iframe.pnt-visivel') || {}).getAttribute?.('src') || ''), null, { timeout: 30000 });
+  const quadroFoto = await (await tvFoto.locator('iframe.pnt-visivel').elementHandle()).contentFrame();
+  await quadroFoto.waitForFunction(() => document.getElementById('foto').naturalWidth > 0, null, { timeout: 15000 });
+  await tvFoto.close();
+  await admin.locator('.item[data-item="0"] .modo-imagem input').uncheck();
+  await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
+  passo('modo imagem: robô envia a foto e a TV mostra a foto no lugar do site');
 
   const cot = await contexto.newPage();
   vigiar(cot, 'cotacoes');

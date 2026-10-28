@@ -67,6 +67,12 @@ A TV mostra todas as páginas do item 1, depois todas as do item 2, e assim por 
 - Use os **Modelos prontos** (dólar, euro, Ibovespa, bitcoin, quadro de cotações — widgets do TradingView em pt-BR).
 - **Cobre e alumínio em tonelada:** modelos “Cobre e Alumínio (US$/t e R$/t)”. É uma tela do próprio SugesconTv (`/cotacoes?ativos=cobre,aluminio,dolar`) com os preços de referência dos contratos futuros da COMEX (cobre convertido de libra para tonelada; R$/t pelo dólar do dia), gráfico de 1 mês e variação do dia. Atualiza a cada 10 min.
 
+## Modo imagem (fotos) — páginas pesadas sem pesar a TV
+
+Marque **Modo imagem** num item do editor: a TV passa a mostrar uma **foto** da página, tirada **a cada 15 minutos** (segunda a sexta, 7h às 19h, horário de Brasília) por um robô do GitHub (Actions → *Fotos do modo imagem*), em vez de abrir o site ao vivo. Fica levíssimo e funciona em qualquer TV; em troca, não é em tempo real e não tem animação. Os itens sem a marcação continuam ao vivo.
+
+Configuração (uma vez só): na lista de telas, abra **Configurar o modo imagem**, clique em **Mostrar chave → Copiar** e cadastre no GitHub em **Settings → Secrets and variables → Actions → New repository secret** com o nome `FOTOS_TOKEN`. Se trocar a senha do painel, a chave muda. Para rodar na hora: **Actions → Fotos do modo imagem → Run workflow**. Enquanto a primeira foto não existe, a TV mostra o site ao vivo.
+
 ## 4) Instalar na TV
 
 **Opção A – navegador da TV (mais simples).** Abra o link da tela (`https://<seu-projeto>.pages.dev/tv?tela=CODIGO`) e salve nos favoritos. Opções no fim do link:
