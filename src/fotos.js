@@ -18,12 +18,18 @@ export async function tokenFotos(senha) {
   return hex(await crypto.subtle.sign('HMAC', k, codificador.encode('sugescontv-fotos-v1'))).slice(0, 40);
 }
 
-// Acrescenta a chave da foto às páginas dos itens em modo imagem.
+// Página marcada para o modo imagem (telas antigas tinham só a marcação do item inteiro).
+export function emModoImagem(item, pagina) {
+  return pagina.imagem === true || (pagina.imagem === undefined && item.imagem === true);
+}
+
+// Acrescenta a chave da foto às páginas em modo imagem.
 export async function marcarFotos(itens) {
   return Promise.all(
     (itens || []).map(async (item) => {
-      if (!item.imagem) return item;
-      const paginas = await Promise.all(item.paginas.map(async (p) => ({ ...p, foto: await chaveFoto(p.url) })));
+      const paginas = await Promise.all(
+        item.paginas.map(async (p) => (emModoImagem(item, p) ? { ...p, foto: await chaveFoto(p.url) } : p))
+      );
       return { ...item, paginas };
     })
   );

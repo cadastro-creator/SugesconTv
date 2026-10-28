@@ -223,6 +223,12 @@ async function abrirEditor(codigo) {
     mensagem($('msgLista'), err.message);
     return;
   }
+  // Telas antigas: a marcação do item vale para todas as páginas.
+  for (const item of estado.tela.itens) {
+    if (item.imagem) for (const p of item.paginas) if (p.imagem === undefined) p.imagem = true;
+    delete item.imagem;
+  }
+  estado.fotos = {};
   history.replaceState(null, '', '#tela=' + codigo);
   estado.sel = estado.tela.itens.length ? { item: 0, pagina: 0 } : null;
   $('editorNome').textContent = estado.tela.nome;
@@ -231,6 +237,40 @@ async function abrirEditor(codigo) {
   mostrar('telaEditor');
   desenharItens();
   atualizarPrevia();
+  atualizarFotos();
+}
+
+// Horário da última foto de cada página em modo imagem (atualiza a cada minuto com o editor aberto).
+async function atualizarFotos() {
+  clearTimeout(estado.timerFotos);
+  if (!estado.tela || $('telaEditor').hidden) return;
+  const codigo = estado.tela.codigo;
+  try {
+    const { fotos } = await api('GET', '/api/telas/' + codigo + '/fotos');
+    if (estado.tela && estado.tela.codigo === codigo) {
+      estado.fotos = fotos;
+      for (const el of document.querySelectorAll('.situacao-foto')) el.replaceWith(situacaoFoto(el.dataset.url));
+    }
+  } catch {
+    // sem conexão: tenta de novo no próximo minuto
+  }
+  estado.timerFotos = setTimeout(atualizarFotos, 60000);
+}
+
+function situacaoFoto(url) {
+  const em = estado.fotos && estado.fotos[url];
+  let texto = '';
+  let titulo = '';
+  if (em) {
+    const d = new Date(em);
+    const hoje = d.toDateString() === new Date().toDateString();
+    texto = '📷 ' + (hoje ? '' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ') + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    titulo = 'Horário da foto que a TV está mostrando.';
+  } else if (estado.fotos && url in estado.fotos) {
+    texto = '⏳ aguardando 1ª foto';
+    titulo = 'O robô tira a foto em até 15 min (seg–sex, 7h–19h). Até lá, a TV mostra a página ao vivo.';
+  }
+  return h('span', { class: 'situacao-foto', 'data-url': url, title: titulo }, texto);
 }
 
 $('voltar').addEventListener('click', () => abrirLista());
@@ -406,14 +446,16 @@ function desenharItens() {
             { class: 'modo-imagem', title: 'A TV mostra uma foto da página, tirada a cada 15 min (seg–sex, 7h–19h). Mais leve; sem tempo real.' },
             h('input', {
               type: 'checkbox',
-              checked: item.imagem === true,
+              checked: item.paginas.every((p) => p.imagem),
+              indeterminate: item.paginas.some((p) => p.imagem) && !item.paginas.every((p) => p.imagem),
               onchange: (e) => {
-                item.imagem = e.target.checked;
+                for (const p of item.paginas) p.imagem = e.target.checked;
                 alterado();
                 desenharItens();
+                salvarAgora().then(atualizarFotos);
               }
             }),
-            ' Modo imagem (foto a cada 15 min)'
+            ' Modo imagem em todas as páginas'
           ),
           h(
             'label',
@@ -469,6 +511,23 @@ function desenharItens() {
                 }),
                 ' s'
               ),
+              h(
+                'label',
+                { class: 'modo-imagem', title: 'Modo imagem: a TV mostra uma foto desta página, tirada a cada 15 min.' },
+                h('input', {
+                  type: 'checkbox',
+                  checked: pg.imagem === true,
+                  'aria-label': `Modo imagem da página ${j + 1}`,
+                  onchange: (e) => {
+                    pg.imagem = e.target.checked;
+                    alterado();
+                    desenharItens();
+                    salvarAgora().then(atualizarFotos);
+                  }
+                }),
+                ' Imagem'
+              ),
+              pg.imagem ? situacaoFoto(pg.url) : null,
               h('span', { class: 'url', title: pg.url }, encurtar(pg.url)),
               h(
                 'button',
@@ -543,7 +602,10 @@ async function adicionarPagina(i, entrada, msg) {
       return mensagem(msg, `Este link é de ${TIPOS[r.tipo]}, e este item é de ${TIPOS[item.tipo]}. Use “Adicionar dashboard”.`);
     }
     if (item.paginas.length >= 30) return mensagem(msg, 'Máximo de 30 páginas por item.');
-    item.paginas.push({ url: r.url, segundos: item.paginas[item.paginas.length - 1].segundos || 30 });
+    // Página nova entra em modo imagem quando todas as outras do item já estão.
+    const imagem = item.paginas.every((p) => p.imagem) || undefined;
+    item.paginas.push({ url: r.url, segundos: item.paginas[item.paginas.length - 1].segundos || 30, imagem });
+    if (imagem) salvarAgora().then(atualizarFotos);
     alterado();
     selecionar(i, item.paginas.length - 1);
     const novoMsg = document.querySelector(`[data-item="${i}"] .msg`);

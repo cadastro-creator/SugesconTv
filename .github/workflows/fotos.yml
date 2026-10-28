@@ -5,7 +5,7 @@ name: Fotos do modo imagem
 
 on:
   schedule:
-    - cron: '*/15 10-21 * * 1-5'
+    - cron: '7,22,37,52 10-21 * * 1-5'
   workflow_dispatch:
 
 permissions:

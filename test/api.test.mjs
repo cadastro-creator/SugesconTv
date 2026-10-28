@@ -331,4 +331,31 @@ test('modo imagem: chave do robô, lista de páginas, envio e leitura da foto, T
   const tv = await (await pedir(env, 'GET', '/api/tv/' + codigo)).json();
   assert.equal(tv.itens[0].paginas[0].foto, chave);
   assert.equal(tv.itens[1].paginas[0].foto, undefined);
+
+  // Situação das fotos no painel: horário da foto ou null (ainda sem foto).
+  const sit = await (await pedir(env, 'GET', '/api/telas/' + codigo + '/fotos', { cookie })).json();
+  assert.ok(sit.fotos[ITEM.paginas[0].url]);
+  if (ITEM.paginas[1]) assert.equal(sit.fotos[ITEM.paginas[1].url], null);
+  assert.equal('https://ao-vivo.exemplo.com/' in sit.fotos, false);
+  assert.equal((await pedir(env, 'GET', '/api/telas/' + codigo + '/fotos')).status, 401);
+});
+
+test('modo imagem por página: só as páginas marcadas viram foto; marcação antiga do item vale para todas', async () => {
+  const { validarItens } = await import('../src/api.js');
+  const antigo = validarItens([{ tipo: 'site', imagem: true, paginas: [{ url: 'https://a.exemplo.com/' }, { url: 'https://b.exemplo.com/' }] }]);
+  assert.deepEqual(antigo[0].paginas.map((p) => p.imagem), [true, true]);
+  const novo = validarItens([{ tipo: 'site', imagem: true, paginas: [{ url: 'https://a.exemplo.com/', imagem: false }, { url: 'https://b.exemplo.com/', imagem: true }] }]);
+  assert.deepEqual(novo[0].paginas.map((p) => p.imagem), [undefined, true]);
+
+  const env = ambiente();
+  const cookie = await entrar(env);
+  const { codigo } = await (await pedir(env, 'POST', '/api/telas', { corpo: { nome: 'T' }, cookie })).json();
+  const itens = [{ tipo: 'site', nome: 'Misto', paginas: [{ url: 'https://ao-vivo.exemplo.com/' }, { url: 'https://foto.exemplo.com/', imagem: true }] }];
+  await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { itens }, cookie });
+  const tv = await (await pedir(env, 'GET', '/api/tv/' + codigo)).json();
+  assert.equal(tv.itens[0].paginas[0].foto, undefined);
+  assert.ok(tv.itens[0].paginas[1].foto);
+  const { tokenFotos } = await import('../src/fotos.js');
+  const r = await tratar(new Request(ORIGEM + '/api/fotos/pendentes', { headers: { authorization: 'Bearer ' + (await tokenFotos(SENHA)) } }), env);
+  assert.deepEqual((await r.json()).paginas.map((p) => p.url), ['https://foto.exemplo.com/']);
 });

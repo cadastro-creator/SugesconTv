@@ -317,7 +317,8 @@ try {
   // Modo imagem: item marcado no painel; o robô envia a foto; a TV mostra a foto.
   if (await admin.locator('#telaEditor').isHidden()) await admin.click('.tela .botao.principal');
   await admin.waitForSelector('#telaEditor:not([hidden])');
-  await admin.locator('.item[data-item="0"] .modo-imagem input').check();
+  await admin.locator('.item[data-item="0"] .item-opcoes .modo-imagem input').check();
+  assert.ok(await admin.locator('.item[data-item="0"] .pagina .modo-imagem input').first().isChecked(), 'marcar o item marca as páginas');
   await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
   const { token: tokenFotos } = await admin.evaluate(async () => (await fetch('/api/fotos/token')).json());
   const pend = await (await fetch(BASE + '/api/fotos/pendentes', { headers: { Authorization: 'Bearer ' + tokenFotos } })).json();
@@ -334,7 +335,9 @@ try {
   const quadroFoto = await (await tvFoto.locator('iframe.pnt-visivel').elementHandle()).contentFrame();
   await quadroFoto.waitForFunction(() => document.getElementById('foto').naturalWidth > 0, null, { timeout: 15000 });
   await tvFoto.close();
-  await admin.locator('.item[data-item="0"] .modo-imagem input').uncheck();
+  await admin.reload();
+  await admin.waitForSelector('.item[data-item="0"] .situacao-foto:has-text("📷")', { timeout: 15000 });
+  await admin.locator('.item[data-item="0"] .item-opcoes .modo-imagem input').uncheck();
   await admin.waitForSelector('#status.salvo:has-text("salvo às")', { timeout: 15000 });
   passo('modo imagem: robô envia a foto e a TV mostra a foto no lugar do site');
 

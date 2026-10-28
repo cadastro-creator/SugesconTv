@@ -3,7 +3,7 @@
 import { analisarLink, nomeSugerido, validarEndereco } from '../public/assets/links.js';
 import { verificarExibicao } from './verificar.js';
 import { lerLista, obterCotacoes } from './cotacoes.js';
-import { chaveFoto, marcarFotos, tokenFotos } from './fotos.js';
+import { chaveFoto, emModoImagem, marcarFotos, tokenFotos } from './fotos.js';
 
 const COOKIE = 'painel_sessao';
 const SESSAO_SEGUNDOS = 12 * 60 * 60;
@@ -137,18 +137,21 @@ export function validarItens(itens) {
     const paginas = Array.isArray(item.paginas) ? item.paginas : [];
     if (!paginas.length) throw new Error(`O item ${i + 1} não tem páginas.`);
     if (paginas.length > 30) throw new Error(`O item ${i + 1} tem páginas demais (máximo 30).`);
+    const lista = paginas.map((p, j) => {
+      const v = validarEndereco(p && p.url);
+      if (!v.ok) throw new Error(`Item ${i + 1}, página ${j + 1}: ${v.erro}`);
+      const r = { url: v.url.href, segundos: inteiro(p.segundos, 30, 5, 3600) };
+      // Modo imagem por página (telas antigas tinham só a marcação do item inteiro).
+      if (p.imagem === true || (p.imagem === undefined && item.imagem === true)) r.imagem = true;
+      return r;
+    });
     return {
       id: /^[a-z0-9]{1,20}$/.test(item.id || '') ? item.id : Math.random().toString(36).slice(2, 10),
       tipo,
       nome: limparNome(item.nome, `Item ${i + 1}`),
       recarregarMin: inteiro(item.recarregarMin, 10, 5, 1440),
       pausado: item.pausado === true,
-      imagem: item.imagem === true,
-      paginas: paginas.map((p, j) => {
-        const v = validarEndereco(p && p.url);
-        if (!v.ok) throw new Error(`Item ${i + 1}, página ${j + 1}: ${v.erro}`);
-        return { url: v.url.href, segundos: inteiro(p.segundos, 30, 5, 3600) };
-      })
+      paginas: lista
     };
   });
 }
@@ -248,7 +251,7 @@ export async function tratar(req, env, opcoes = {}) {
         for (const k of r.keys) {
           const t = await kv.get(k.name, 'json');
           for (const item of (t && t.itens) || []) {
-            if (item.imagem && !item.pausado) for (const p of item.paginas) urls.add(p.url);
+            if (!item.pausado) for (const p of item.paginas) if (emModoImagem(item, p)) urls.add(p.url);
           }
         }
         cursor = r.list_complete ? null : r.cursor;
@@ -364,6 +367,29 @@ export async function tratar(req, env, opcoes = {}) {
       return json(tela, 201);
     }
     return falha(405, 'Método não permitido.');
+  }
+
+  // Situação das fotos das páginas em modo imagem de uma tela: { link: horário da foto ou null }.
+  const sf = caminho.match(/^\/api\/telas\/([A-Za-z0-9]+)\/fotos$/);
+  if (sf && metodo === 'GET') {
+    const tela = await lerTela(kv, sf[1].toUpperCase());
+    if (!tela) return falha(404, 'Tela não encontrada.');
+    const tiradas = {};
+    let cursor;
+    do {
+      const r = await kv.list({ prefix: 'foto:', cursor });
+      for (const k of r.keys) tiradas[k.name.slice(5)] = (k.metadata && k.metadata.em) || '';
+      cursor = r.list_complete ? null : r.cursor;
+    } while (cursor);
+    const fotos = {};
+    for (const item of tela.itens || []) {
+      for (const p of item.paginas) {
+        if (!emModoImagem(item, p)) continue;
+        const chave = await chaveFoto(p.url);
+        fotos[p.url] = chave in tiradas ? tiradas[chave] : null;
+      }
+    }
+    return json({ fotos });
   }
 
   const t = caminho.match(/^\/api\/telas\/([A-Za-z0-9]+)$/);
