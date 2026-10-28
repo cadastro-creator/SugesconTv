@@ -653,7 +653,8 @@ function preencherAjustes() {
   $('opDireto').checked = o.direto === true;
   $('opPreparo').value = o.preparo ?? '';
   $('opQuadros').value = o.quadros ?? '';
-  $('ajustesTv').open = !!(o.direto || o.preparo !== undefined || o.quadros !== undefined);
+  $('opLargura').value = o.largura ? String(o.largura) : '';
+  $('ajustesTv').open = !!(o.direto || o.preparo !== undefined || o.quadros !== undefined || o.largura);
 }
 
 function lerAjustes() {
@@ -663,11 +664,12 @@ function lerAjustes() {
   if ($('opDireto').checked) o.direto = true;
   if ($('opPreparo').value !== '') o.preparo = numero($('opPreparo').value, 15, 0, 120);
   if ($('opQuadros').value !== '') o.quadros = numero($('opQuadros').value, 8, 2, 12);
+  if ($('opLargura').value) o.largura = Number($('opLargura').value);
   estado.tela.opcoes = o;
   alterado();
 }
 
-for (const id of ['opDireto', 'opPreparo', 'opQuadros']) $(id).addEventListener('change', lerAjustes);
+for (const id of ['opDireto', 'opPreparo', 'opQuadros', 'opLargura']) $(id).addEventListener('change', lerAjustes);
 
 // ---------- registro (log) da TV ----------
 

@@ -99,6 +99,14 @@
           <summary>Ajustes desta TV (avançado)</summary>
           <label class="linha-ajuste"><input id="opDireto" type="checkbox"> <span><strong>Modo direto:</strong> abrir cada página na hora, sem pré-carregar escondido. Use se algum gráfico não aparece na TV (a página aparece carregando).</span></label>
           <label class="linha-ajuste">Tempo de preparo escondido <input id="opPreparo" type="number" min="0" max="120" placeholder="15"> segundos</label>
+          <label class="linha-ajuste">Resolução da página
+            <select id="opLargura">
+              <option value="">Automática (a da TV)</option>
+              <option value="1280">1280 × 720 (HD)</option>
+              <option value="1920">1920 × 1080 (Full HD) — use se gráficos não aparecem</option>
+              <option value="2560">2560 × 1440</option>
+            </select>
+          </label>
           <label class="linha-ajuste">Páginas guardadas na memória <input id="opQuadros" type="number" min="2" max="12" placeholder="8"> (menos = TV mais leve)</label>
           <p class="dica">Valem para o app e para o navegador. As TVs recarregam sozinhas para aplicar (até 1 minuto).</p>
           <div class="registro">

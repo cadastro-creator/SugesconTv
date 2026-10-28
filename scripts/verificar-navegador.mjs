@@ -253,6 +253,23 @@ try {
   await vertical.waitForFunction(() => document.getElementById('palco').style.width === '1080px');
   passo('?girar=90 recalcula as medidas no resize');
 
+  // Resolução da página: numa TV que informa 960x540 densidade 2, a página é montada em 1920x1080.
+  const ctxTv = await navegador.newContext({ viewport: { width: 960, height: 540 }, deviceScaleFactor: 2 });
+  await ctxTv.route(/^https:\/\//, (rota) => rota.fulfill({ status: 200, contentType: 'text/html', body: '<h1>x</h1>' }));
+  const pequena = await ctxTv.newPage();
+  await pequena.goto(`${BASE}/tv?tela=${codigo}&largura=1920`);
+  await pequena.waitForSelector('iframe.pnt-visivel');
+  const medidaVirtual = await pequena.evaluate(() => {
+    const p = document.getElementById('palco');
+    const r = document.querySelector('iframe.pnt-visivel').getBoundingClientRect();
+    return [p.style.width, p.style.height, p.style.transform, Math.round(r.width), Math.round(r.height)];
+  });
+  assert.deepEqual(medidaVirtual, ['1920px', '1080px', 'scale(0.5)', 960, 540]);
+  const larguraDentro = await (await pequena.locator('iframe.pnt-visivel').elementHandle()).contentFrame().then((f) => f.evaluate(() => window.innerWidth));
+  assert.equal(larguraDentro, 1920, 'o site dentro da TV enxerga 1920 de largura');
+  await ctxTv.close();
+  passo('resolução da página: TV 960x540 monta o site em 1920x1080');
+
   const inexistente = await contexto.newPage();
   vigiar(inexistente, 'tv-inexistente');
   await inexistente.goto(`${BASE}/tv?tela=ZZZZZZ`);

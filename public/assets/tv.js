@@ -54,6 +54,11 @@
   var girar = parseInt(parametro('girar'), 10) || 0;
   if (girar !== 90 && girar !== 180 && girar !== 270) girar = 0;
 
+  // Largura virtual (ajuste "Resolução da página" no painel): a página é montada com essa
+  // largura (ex.: 1920) e reduzida/ampliada para caber na tela. Alguns sites (ex.: Looker)
+  // não desenham gráficos no tamanho que certas TVs informam (ex.: 960x540 densidade 2).
+  var larguraVirtual = 0;
+
   function ajustarRotacao() {
     var palco = $('palco');
     var w = window.innerWidth || document.documentElement.clientWidth;
@@ -63,8 +68,16 @@
     else if (girar === 180) t = 'translate(' + w + 'px,' + h + 'px) rotate(180deg)';
     else if (girar === 270) t = 'translate(0,' + h + 'px) rotate(270deg)';
     var deitado = girar === 90 || girar === 270;
-    palco.style.width = (deitado ? h : w) + 'px';
-    palco.style.height = (deitado ? w : h) + 'px';
+    var largura = deitado ? h : w;
+    var altura = deitado ? w : h;
+    if (larguraVirtual && largura) {
+      var escala = largura / larguraVirtual;
+      largura = larguraVirtual;
+      altura = Math.round(altura / escala);
+      t = (t ? t + ' ' : '') + 'scale(' + escala + ')';
+    }
+    palco.style.width = largura + 'px';
+    palco.style.height = altura + 'px';
     palco.style.webkitTransform = t;
     palco.style.transform = t;
   }
@@ -108,11 +121,11 @@
 
   function iniciar() {
     var codigo = (parametro('tela') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (girar) {
-      ajustarRotacao();
-      window.addEventListener('resize', ajustarRotacao, false);
-      window.addEventListener('orientationchange', ajustarRotacao, false);
-    }
+    // ?largura=1920 também força a largura virtual (teste sem mexer no painel).
+    larguraVirtual = parseInt(parametro('largura'), 10) || 0;
+    window.addEventListener('resize', ajustarRotacao, false);
+    window.addEventListener('orientationchange', ajustarRotacao, false);
+    if (girar || larguraVirtual) ajustarRotacao();
     if (parametro('relogio') === '1' || parametro('relogio') === 'sim') {
       mostrar($('relogio'), true);
       atualizarRelogio();
@@ -146,11 +159,20 @@
       }
     }
     function chaveOpcoes(o) {
-      return [o.direto ? 1 : 0, o.preparo === undefined ? '' : o.preparo, o.quadros === undefined ? '' : o.quadros].join('|');
+      return [
+        o.direto ? 1 : 0,
+        o.preparo === undefined ? '' : o.preparo,
+        o.quadros === undefined ? '' : o.quadros,
+        o.largura === undefined ? '' : o.largura
+      ].join('|');
     }
     var cache = lerCache(chaveCache);
     var opcoes = lerOpcoes(cache);
     var opcoesAplicadas = chaveOpcoes(opcoes);
+    if (!larguraVirtual && opcoes.largura) {
+      larguraVirtual = opcoes.largura;
+      ajustarRotacao();
+    }
 
     // ---------- registro (log) para diagnóstico: ligado no painel por até 2 h ----------
     var registroAte = opcoes.registroAte || 0;

@@ -260,10 +260,12 @@ test('ajustes da TV por tela: validados, salvos e enviados à TV', async () => {
   const env = ambiente();
   const cookie = await entrar(env);
   const { codigo } = await (await pedir(env, 'POST', '/api/telas', { corpo: { nome: 'T' }, cookie })).json();
-  const r = await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: { direto: true, preparo: 999, quadros: 1, extra: 'x' } }, cookie });
-  assert.deepEqual((await r.json()).opcoes, { direto: true, preparo: 120, quadros: 2 });
+  const r = await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: { direto: true, preparo: 999, quadros: 1, largura: 1920, extra: 'x' } }, cookie });
+  assert.deepEqual((await r.json()).opcoes, { direto: true, preparo: 120, quadros: 2, largura: 1920 });
   const tv = await (await pedir(env, 'GET', '/api/tv/' + codigo)).json();
-  assert.deepEqual(tv.opcoes, { direto: true, preparo: 120, quadros: 2 });
+  assert.deepEqual(tv.opcoes, { direto: true, preparo: 120, quadros: 2, largura: 1920 });
+  const ruim = await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: { largura: 333 } }, cookie });
+  assert.equal((await ruim.json()).opcoes.largura, undefined);
   await pedir(env, 'PUT', '/api/telas/' + codigo, { corpo: { opcoes: {} }, cookie });
   assert.deepEqual((await (await pedir(env, 'GET', '/api/tv/' + codigo)).json()).opcoes, {});
 });

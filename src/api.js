@@ -158,6 +158,8 @@ export function validarOpcoes(o) {
   if (o.direto === true) r.direto = true;
   if (o.preparo !== null && o.preparo !== undefined && o.preparo !== '') r.preparo = inteiro(o.preparo, 15, 0, 120);
   if (o.quadros !== null && o.quadros !== undefined && o.quadros !== '') r.quadros = inteiro(o.quadros, 8, 2, 12);
+  // Resolução da página: largura virtual em que as páginas são montadas (reduzida para caber).
+  if ([1280, 1920, 2560].indexOf(Number(o.largura)) >= 0) r.largura = Number(o.largura);
   // Registro (log) da TV ligado até este horário (no máximo 2 h à frente).
   const ate = Number(o.registroAte);
   if (Number.isFinite(ate) && ate > Date.now() && ate <= Date.now() + 2 * 3600000) r.registroAte = Math.round(ate);
