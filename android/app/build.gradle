@@ -55,3 +55,8 @@ android {
         abortOnError false
     }
 }
+
+dependencies {
+    // Script no início de cada página, inclusive dentro dos iframes (esconder WebGPU).
+    implementation 'androidx.webkit:webkit:1.11.0'
+}

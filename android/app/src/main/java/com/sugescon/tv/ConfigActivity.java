@@ -23,6 +23,7 @@ public class ConfigActivity extends Activity {
     private TextView aviso;
     private CheckBox campoCompat;
     private CheckBox campoComputador;
+    private CheckBox campoSemWebGpu;
 
     @Override
     protected void onCreate(Bundle estado) {
@@ -49,6 +50,14 @@ public class ConfigActivity extends Activity {
         campoComputador.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         campoComputador.setChecked(Config.comoComputador(this));
         caixa.addView(campoComputador);
+
+        campoSemWebGpu = new CheckBox(this);
+        campoSemWebGpu.setText("Esconder WebGPU (recomendado): corrige gráficos do Looker que ficam vazios "
+                + "em TVs cuja placa de vídeo não suporta WebGPU.");
+        campoSemWebGpu.setTextColor(Color.WHITE);
+        campoSemWebGpu.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        campoSemWebGpu.setChecked(Config.semWebGpu(this));
+        caixa.addView(campoSemWebGpu);
 
         campoCompat = new CheckBox(this);
         campoCompat.setText("Compatibilidade de vídeo: desenhar sem aceleração. Ligue se gráficos (pizza, barras) "
@@ -114,6 +123,7 @@ public class ConfigActivity extends Activity {
         Config.salvar(this, site, codigo);
         Config.salvarCompatibilidade(this, campoCompat.isChecked());
         Config.salvarComoComputador(this, campoComputador.isChecked());
+        Config.salvarSemWebGpu(this, campoSemWebGpu.isChecked());
         Intent i = new Intent(this, MainActivity.class);
         i.putExtra("recarregar", true);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

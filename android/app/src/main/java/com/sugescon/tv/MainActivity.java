@@ -10,6 +10,10 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
+import androidx.webkit.ScriptHandler;
+import androidx.webkit.WebViewCompat;
+import androidx.webkit.WebViewFeature;
+import java.util.Collections;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -24,6 +28,12 @@ public class MainActivity extends Activity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private WebView web;
+    private ScriptHandler scriptSemWebGpu;
+
+    /** Roda no início de cada página e de cada iframe: remove o WebGPU (navigator.gpu). */
+    private static final String ESCONDER_WEBGPU =
+            "(function(){try{if(self.Navigator&&Object.getOwnPropertyDescriptor(Navigator.prototype,'gpu'))"
+                    + "{delete Navigator.prototype.gpu;}}catch(e){}})();";
     private final long[] toquesVoltar = new long[3];
     private int indiceVoltar = 0;
 
@@ -65,6 +75,7 @@ public class MainActivity extends Activity {
         cookies.setAcceptCookie(true);
         cookies.setAcceptThirdPartyCookies(web, true);
         aplicarAgente();
+        aplicarSemWebGpu();
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -98,6 +109,7 @@ public class MainActivity extends Activity {
         super.onNewIntent(intent);
         if (web != null && intent.getBooleanExtra("recarregar", false)) {
             aplicarAgente();
+            aplicarSemWebGpu();
             web.loadUrl(Config.urlTv(this));
         }
     }
@@ -120,6 +132,22 @@ public class MainActivity extends Activity {
         handler.removeCallbacksAndMessages(null);
         if (web != null) web.destroy();
         super.onDestroy();
+    }
+
+    /** Liga/desliga o script que esconde o WebGPU, conforme os ajustes. */
+    private void aplicarSemWebGpu() {
+        if (web == null) return;
+        try {
+            boolean querer = Config.semWebGpu(this);
+            if (querer && scriptSemWebGpu == null && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                scriptSemWebGpu = WebViewCompat.addDocumentStartJavaScript(web, ESCONDER_WEBGPU, Collections.singleton("*"));
+            } else if (!querer && scriptSemWebGpu != null) {
+                scriptSemWebGpu.remove();
+                scriptSemWebGpu = null;
+            }
+        } catch (RuntimeException e) {
+            // WebView antigo sem suporte: segue sem esconder.
+        }
     }
 
     /** Aplica (ou desfaz) a identificação como computador, conforme os ajustes. */

@@ -40,6 +40,16 @@ final class Config {
         prefs(c).edit().putBoolean("comoComputador", ligado).apply();
     }
 
+    /** Esconder o WebGPU das páginas (padrão: sim). Em TVs cuja placa de vídeo não suporta
+     *  WebGPU, o Looker tenta usá-lo e os gráficos ficam vazios; sem ele, usa o desenho antigo. */
+    static boolean semWebGpu(Context c) {
+        return prefs(c).getBoolean("semWebGpu", true);
+    }
+
+    static void salvarSemWebGpu(Context c, boolean ligado) {
+        prefs(c).edit().putBoolean("semWebGpu", ligado).apply();
+    }
+
     /** Compatibilidade de vídeo: desenha sem aceleração (para TVs que não pintam gráficos). */
     static boolean compatibilidade(Context c) {
         return prefs(c).getBoolean("compatibilidade", false);
