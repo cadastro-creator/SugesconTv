@@ -64,6 +64,7 @@ public class MainActivity extends Activity {
         CookieManager cookies = CookieManager.getInstance();
         cookies.setAcceptCookie(true);
         cookies.setAcceptThirdPartyCookies(web, true);
+        aplicarAgente();
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -95,7 +96,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (web != null && intent.getBooleanExtra("recarregar", false)) web.loadUrl(Config.urlTv(this));
+        if (web != null && intent.getBooleanExtra("recarregar", false)) {
+            aplicarAgente();
+            web.loadUrl(Config.urlTv(this));
+        }
     }
 
     @Override
@@ -116,6 +120,19 @@ public class MainActivity extends Activity {
         handler.removeCallbacksAndMessages(null);
         if (web != null) web.destroy();
         super.onDestroy();
+    }
+
+    /** Aplica (ou desfaz) a identificação como computador, conforme os ajustes. */
+    private void aplicarAgente() {
+        WebSettings s = web.getSettings();
+        s.setUserAgentString(Config.comoComputador(this) ? agenteComputador(WebSettings.getDefaultUserAgent(this)) : null);
+    }
+
+    /** Identificação de Chrome de computador, com a mesma versão do navegador da TV. */
+    static String agenteComputador(String original) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("Chrome/([\\d.]+)").matcher(original == null ? "" : original);
+        String versao = m.find() ? m.group(1) : "120.0.0.0";
+        return "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + versao + " Safari/537.36";
     }
 
     /** Desenho sem aceleração de vídeo: contorna TVs cuja GPU não pinta curvas e áreas grandes. */

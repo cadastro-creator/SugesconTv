@@ -22,6 +22,7 @@ public class ConfigActivity extends Activity {
     private EditText campoCodigo;
     private TextView aviso;
     private CheckBox campoCompat;
+    private CheckBox campoComputador;
 
     @Override
     protected void onCreate(Bundle estado) {
@@ -40,6 +41,14 @@ public class ConfigActivity extends Activity {
         caixa.addView(texto("Endereço do site (já vem preenchido; só mude se usar outro endereço)", 16, false));
         campoSite = campo(Config.site(this), InputType.TYPE_TEXT_VARIATION_URI);
         caixa.addView(campoSite);
+
+        campoComputador = new CheckBox(this);
+        campoComputador.setText("Identificar como computador (recomendado): os sites mostram a versão completa, "
+                + "com todos os gráficos.");
+        campoComputador.setTextColor(Color.WHITE);
+        campoComputador.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        campoComputador.setChecked(Config.comoComputador(this));
+        caixa.addView(campoComputador);
 
         campoCompat = new CheckBox(this);
         campoCompat.setText("Compatibilidade de vídeo: desenhar sem aceleração. Ligue se gráficos (pizza, barras) "
@@ -104,6 +113,7 @@ public class ConfigActivity extends Activity {
         }
         Config.salvar(this, site, codigo);
         Config.salvarCompatibilidade(this, campoCompat.isChecked());
+        Config.salvarComoComputador(this, campoComputador.isChecked());
         Intent i = new Intent(this, MainActivity.class);
         i.putExtra("recarregar", true);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

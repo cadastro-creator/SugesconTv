@@ -30,6 +30,16 @@ final class Config {
         prefs(c).edit().putString("site", site).putString("codigo", codigo).apply();
     }
 
+    /** Identificar como navegador de computador (padrão: sim). Sites do Google tratam o
+     *  navegador embutido ("wv", "Mobile") de forma diferente e podem não mostrar gráficos. */
+    static boolean comoComputador(Context c) {
+        return prefs(c).getBoolean("comoComputador", true);
+    }
+
+    static void salvarComoComputador(Context c, boolean ligado) {
+        prefs(c).edit().putBoolean("comoComputador", ligado).apply();
+    }
+
     /** Compatibilidade de vídeo: desenha sem aceleração (para TVs que não pintam gráficos). */
     static boolean compatibilidade(Context c) {
         return prefs(c).getBoolean("compatibilidade", false);
