@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -57,6 +58,12 @@ public class MainActivity extends Activity {
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         s.setAllowFileAccess(false);
         s.setSupportZoom(false);
+        // Cookies de terceiros: o WebView do Android bloqueia por padrão (inclusive os "isolados
+        // por site" que o Chrome aceita). O Looker Studio exibido dentro da TV precisa deles para
+        // buscar os dados dos gráficos; sem eles, só os números aparecem.
+        CookieManager cookies = CookieManager.getInstance();
+        cookies.setAcceptCookie(true);
+        cookies.setAcceptThirdPartyCookies(web, true);
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient() {
             @Override
