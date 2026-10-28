@@ -110,6 +110,58 @@
   } catch (e) {
     /* fora da TV */
   }
+  // WebGPU de verdade: o navegador pode "conhecer" o WebGPU sem a placa de vídeo da TV suportar.
+  var celulaGpu = document.createElement('td');
+  (function () {
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    td.appendChild(document.createTextNode('WebGPU funcionando'));
+    tr.appendChild(td);
+    tr.appendChild(celulaGpu);
+    document.getElementById('itens').appendChild(tr);
+  })();
+  function resultadoGpu(texto, ruim) {
+    celulaGpu.textContent = texto;
+    celulaGpu.className = ruim ? 'diag-ruim' : '';
+    try {
+      window.parent.postMessage({ sugescontvDiag: 'webgpu ' + texto }, window.location.origin);
+    } catch (e) {
+      /* fora da TV */
+    }
+  }
+  if (!navigator.gpu || !navigator.gpu.requestAdapter) {
+    resultadoGpu('não existe neste navegador', false);
+  } else {
+    celulaGpu.textContent = 'testando…';
+    var limite = setTimeout(function () {
+      resultadoGpu('NÃO respondeu em 10 s (placa de vídeo sem suporte)', true);
+    }, 10000);
+    navigator.gpu.requestAdapter().then(
+      function (adaptador) {
+        if (!adaptador) {
+          clearTimeout(limite);
+          resultadoGpu('NÃO: sem adaptador (placa de vídeo sem suporte)', true);
+          return;
+        }
+        var info = adaptador.info || {};
+        var nome = [info.vendor, info.architecture, info.device].filter(function (x) { return x; }).join(' ') || 'adaptador';
+        return adaptador.requestDevice().then(
+          function () {
+            clearTimeout(limite);
+            resultadoGpu('sim (' + nome + ')', false);
+          },
+          function (e) {
+            clearTimeout(limite);
+            resultadoGpu('NÃO: adaptador ' + nome + ' falhou ao abrir (' + (e && e.message) + ')', true);
+          }
+        );
+      },
+      function (e) {
+        clearTimeout(limite);
+        resultadoGpu('NÃO: erro (' + (e && e.message) + ')', true);
+      }
+    );
+  }
   linha('Identificação completa', ua);
 
   var veredito = document.getElementById('veredito');
