@@ -119,8 +119,33 @@ async function abrirLista() {
     return;
   }
   desenharLista();
+  mostrarInstalacao();
   if (location.hash.startsWith('#tela=')) history.replaceState(null, '', location.pathname);
 }
+
+// Endereço curto para baixar o app na TV (redireciona para /app/sugescontv.apk).
+async function mostrarInstalacao() {
+  const link = location.origin + '/apk';
+  $('linkApk').textContent = link;
+  if (!$('qrApk').firstChild) $('qrApk').append(qrSvg(link, 120));
+  try {
+    const v = await (await fetch('/app/version.json', { cache: 'no-store' })).json();
+    $('versaoApp').textContent = v.versionName ? `(versão ${v.versionName})` : '';
+  } catch {
+    $('versaoApp').textContent = '';
+  }
+}
+
+$('copiarApk').addEventListener('click', async () => {
+  const botao = $('copiarApk');
+  try {
+    await navigator.clipboard.writeText($('linkApk').textContent);
+    botao.textContent = 'Copiado ✓';
+  } catch {
+    botao.textContent = 'Selecione e copie';
+  }
+  setTimeout(() => (botao.textContent = 'Copiar'), 2000);
+});
 
 // Chave do robô das fotos (modo imagem), para cadastrar no GitHub uma vez só.
 $('mostrarTokenFotos').addEventListener('click', async (e) => {

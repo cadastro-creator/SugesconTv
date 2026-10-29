@@ -86,7 +86,7 @@ Configuração (uma vez só): na lista de telas, abra **Configurar o modo imagem
 As páginas ficam **carregadas em segundo plano**: enquanto uma página está na tela, a seguinte já está sendo montada escondida por trás dela, e só aparece depois de pelo menos 15 s montando — sem tela de carregamento (parece um quadro fixo). Ao ligar, a TV mostra “Carregando painéis…” até a primeira estar pronta. A recarga a cada X minutos é feita numa cópia escondida, que só substitui a antiga quando está pronta. Sem internet, a TV continua girando entre as páginas já carregadas.
 
 **Opção B – app (Android TV, Google TV, TV box Android, Fire TV com Fire OS).**
-1. Baixe `https://<seu-projeto>.pages.dev/apk` (atalho para `/app/sugescontv.apk`) (ou na página *Releases* do GitHub). No Fire TV, use o app **Downloader**; no Android TV, use um gerenciador de arquivos.
+1. Baixe `https://<seu-projeto>.pages.dev/apk` (o endereço e um QR code aparecem no painel, em **Instalar o app em uma TV nova**) (atalho para `/app/sugescontv.apk`) (ou na página *Releases* do GitHub). No Fire TV, use o app **Downloader**; no Android TV, use um gerenciador de arquivos.
 2. Na primeira abertura, digite só o **código da tela** (o endereço do site já vem no app; para outro endereço, crie a variável `SITE_URL` em Settings → Secrets and variables → Actions → Variables antes de gerar a versão).
 3. O app abre sozinho ao ligar a TV e pode virar a **tela inicial** (a TV pergunta ao apertar HOME). Aperte **VOLTAR 3 vezes** para abrir os ajustes.
 4. O app se atualiza sozinho (verifica ao abrir e a cada 6 h). Mudanças nos dashboards **não** exigem atualizar o app.

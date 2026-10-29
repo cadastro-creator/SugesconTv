@@ -39,6 +39,22 @@
     <p class="dica">Uma <strong>tela</strong> é uma TV ou um grupo de TVs que mostram a mesma sequência. Abra o link da tela no navegador da TV (ou no app) e pronto.</p>
     <p id="msgLista" class="msg erro" role="alert"></p>
     <div id="listaTelas" class="grade"></div>
+    <details class="cartao instalar-app" open>
+      <summary>Instalar o app em uma TV nova</summary>
+      <div class="instalar-conteudo">
+        <div>
+          <p>Endereço para baixar o app na TV <span id="versaoApp"></span>:</p>
+          <p class="em-linha"><code id="linkApk" class="link-apk"></code> <button id="copiarApk" class="botao pequeno" type="button">Copiar</button></p>
+          <ol>
+            <li><strong>Google TV / Android TV:</strong> instale o app <strong>Downloader</strong> (Play Store), abra e digite o endereço acima. Se a TV pedir, permita instalar apps do Downloader.</li>
+            <li><strong>Fire TV:</strong> mesmo caminho, com o app Downloader da loja da Amazon.</li>
+            <li>Ao abrir o SugesconTv, digite o <strong>código da tela</strong> (aparece em cada tela da lista acima).</li>
+            <li>Para ajustes depois: aperte <strong>VOLTAR 3 vezes</strong>. O app se atualiza sozinho.</li>
+          </ol>
+        </div>
+        <div id="qrApk" class="qr" title="Ou aponte a câmera do celular para baixar o app"></div>
+      </div>
+    </details>
     <details class="cartao config-fotos">
       <summary>Configurar o modo imagem (fotos) — uma vez só</summary>
       <p>Itens com <strong>Modo imagem</strong> aparecem na TV como uma foto tirada a cada 15 minutos (segunda a sexta, 7h às 19h) por um robô do GitHub. Para o robô poder enviar as fotos:</p>

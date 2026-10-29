@@ -59,6 +59,8 @@ try {
   await admin.fill('#senha', SENHA);
   await admin.click('#formLogin button');
   await admin.waitForSelector('#telaLista:not([hidden])');
+  assert.equal(await admin.textContent('#linkApk'), BASE + '/apk', 'painel mostra o endereço para baixar o app');
+  await admin.waitForFunction(() => document.querySelector('#qrApk svg'));
   passo('login (senha errada recusada, certa aceita)');
 
   await admin.fill('#nomeNova', 'Recepção');
