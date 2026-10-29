@@ -73,6 +73,8 @@ Marque **Imagem** nas páginas do editor (ou **Modo imagem em todas as páginas*
 
 Configuração (uma vez só): na lista de telas, abra **Configurar o modo imagem**, clique em **Mostrar chave → Copiar** e cadastre no GitHub em **Settings → Secrets and variables → Actions → New repository secret** com o nome `FOTOS_TOKEN`. Se trocar a senha do painel, a chave muda. Para rodar na hora: **Actions → Fotos do modo imagem → Run workflow**. Enquanto a primeira foto não existe, a TV mostra o site ao vivo.
 
+**Acordar o robô pelo site (recomendado):** o agendamento do GitHub atrasa horas ou nem roda. Crie no GitHub um *fine-grained token* só para este repositório com a permissão **Actions: Read and write** e cadastre no Cloudflare como segredo `GITHUB_TOKEN` (passo a passo na Tarefa 8 de [docs/TAREFAS-NAVEGADOR.md](docs/TAREFAS-NAVEGADOR.md)). Assim, quando uma TV com páginas em modo imagem está ligada no horário do robô e ele não passa há mais de 25 min, o site pede uma execução ao GitHub (no máximo uma a cada 15 min).
+
 ## 4) Instalar na TV
 
 **Opção A – navegador da TV (mais simples).** Abra o link da tela (`https://<seu-projeto>.pages.dev/tv?tela=CODIGO`) e salve nos favoritos. Opções no fim do link:

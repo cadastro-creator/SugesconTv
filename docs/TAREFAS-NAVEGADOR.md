@@ -105,6 +105,31 @@ No GitHub, abra https://github.com/cadastro-creator/SugesconTv/releases → "Dra
 Se o workflow falhar, copie para mim a mensagem de erro do passo que ficou vermelho.
 ```
 
+## Tarefa 8 — Deixar o site acordar o robô das fotos (modo imagem)
+
+O agendamento do GitHub atrasa horas ou nem roda. Com esta chave, o próprio site pede ao GitHub
+para ligar o robô quando as TVs estão ligadas e as fotos ficam velhas.
+
+```
+Parte A — GitHub (chave que só pode ligar o robô deste repositório):
+1. Abra https://github.com/settings/personal-access-tokens/new (Fine-grained token).
+2. Token name: sugescontv-robo-fotos
+   Expiration: a mais longa disponível (anote a data para renovar).
+   Resource owner: cadastro-creator
+   Repository access: "Only select repositories" → SugesconTv
+   Permissions → Repository permissions → Actions: "Read and write" (o resto fica sem acesso).
+3. Clique em "Generate token". PARE AQUI: não leia nem copie o token para a conversa;
+   peça para eu copiar o token eu mesmo.
+
+Parte B — Cloudflare:
+1. Workers & Pages → projeto "sugescontv" → Settings → Variables and Secrets → Add:
+   - Type: Secret · Variable name: GITHUB_TOKEN
+   - Value: PARE AQUI e me peça para colar o token eu mesmo.
+   Salve (Production).
+2. Deployments → no deploy mais recente de produção, "..." → "Retry deployment" e espere terminar.
+Me confirme o segredo salvo e o deploy concluído.
+```
+
 ---
 
 Para versões novas do app depois: repita a Tarefa 7 com `v1.0.1`, `v1.1.0` etc. Mudanças nos dashboards **não** precisam de versão nova do app.

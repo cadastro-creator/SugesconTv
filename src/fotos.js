@@ -34,3 +34,39 @@ export async function marcarFotos(itens) {
     })
   );
 }
+
+// O agendamento do GitHub atrasa horas ou nem roda. Por isso o site acorda o robô:
+// quando uma TV com páginas em modo imagem consulta a tela, no horário do robô
+// (seg–sex, 7h–19h de Brasília), e o robô não passa há mais de 25 min, pede uma
+// execução ao GitHub (no máximo uma a cada 15 min). Precisa do segredo GITHUB_TOKEN.
+const SEM_ROBO_MS = 25 * 60000;
+const ENTRE_PEDIDOS_MS = 15 * 60000;
+
+export function horarioDoRobo(agora) {
+  const d = new Date(agora);
+  const dia = d.getUTCDay();
+  const hora = d.getUTCHours();
+  return dia >= 1 && dia <= 5 && hora >= 10 && hora < 22;
+}
+
+export async function acordarRobo(kv, env, agora = Date.now(), buscar = fetch) {
+  if (!env.GITHUB_TOKEN) return 'sem GITHUB_TOKEN';
+  if (!horarioDoRobo(agora)) return 'fora do horário';
+  const ultimo = Date.parse((await kv.get('fotos:robo')) || '') || 0;
+  if (agora - ultimo < SEM_ROBO_MS) return 'robô ativo';
+  const pedido = Date.parse((await kv.get('fotos:pedido')) || '') || 0;
+  if (agora - pedido < ENTRE_PEDIDOS_MS) return 'já pedido';
+  await kv.put('fotos:pedido', new Date(agora).toISOString(), { expirationTtl: 3600 });
+  const repo = env.GITHUB_REPO || 'cadastro-creator/SugesconTv';
+  const r = await buscar(`https://api.github.com/repos/${repo}/actions/workflows/fotos.yml/dispatches`, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + env.GITHUB_TOKEN,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'SugesconTv'
+    },
+    body: JSON.stringify({ ref: env.GITHUB_BRANCH || 'main' })
+  });
+  return r.status === 204 ? 'acordado' : 'erro ' + r.status;
+}

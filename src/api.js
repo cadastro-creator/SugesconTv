@@ -3,7 +3,10 @@
 import { analisarLink, nomeSugerido, validarEndereco } from '../public/assets/links.js';
 import { verificarExibicao } from './verificar.js';
 import { lerLista, obterCotacoes } from './cotacoes.js';
-import { chaveFoto, emModoImagem, marcarFotos, tokenFotos } from './fotos.js';
+import { acordarRobo, chaveFoto, emModoImagem, marcarFotos, tokenFotos } from './fotos.js';
+
+// Última verificação do robô das fotos nesta instância (poupa leituras do KV).
+let roboVistoEm = 0;
 
 const COOKIE = 'painel_sessao';
 const SESSAO_SEGUNDOS = 12 * 60 * 60;
@@ -266,6 +269,8 @@ export async function tratar(req, env, opcoes = {}) {
         }
         cursor = r.list_complete ? null : r.cursor;
       } while (cursor);
+      // Sinal de vida do robô (o site só pede outra execução ao GitHub quando ele some).
+      await kv.put('fotos:robo', new Date().toISOString(), { expirationTtl: 86400 });
       const paginas = await Promise.all([...urls].map(async (u) => ({ url: u, chave: await chaveFoto(u) })));
       return json({ paginas });
     }
@@ -286,6 +291,13 @@ export async function tratar(req, env, opcoes = {}) {
     if (metodo !== 'GET') return falha(405, 'Método não permitido.');
     const tela = await lerTela(kv, tv[1].toUpperCase());
     if (!tela) return falha(404, 'Tela não encontrada.');
+    const temFoto = (tela.itens || []).some((item) => !item.pausado && item.paginas.some((p) => emModoImagem(item, p)));
+    if (temFoto && env.GITHUB_TOKEN && Date.now() - roboVistoEm > 60000) {
+      roboVistoEm = Date.now();
+      const pedido = acordarRobo(kv, env, Date.now(), opcoes.buscar || fetch).catch(() => 'erro');
+      if (opcoes.esperar) opcoes.esperar(pedido);
+      else await pedido;
+    }
     return json({
       codigo: tela.codigo,
       nome: tela.nome,

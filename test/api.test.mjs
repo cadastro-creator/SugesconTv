@@ -359,3 +359,28 @@ test('modo imagem por página: só as páginas marcadas viram foto; marcação a
   const r = await tratar(new Request(ORIGEM + '/api/fotos/pendentes', { headers: { authorization: 'Bearer ' + (await tokenFotos(SENHA)) } }), env);
   assert.deepEqual((await r.json()).paginas.map((p) => p.url), ['https://foto.exemplo.com/']);
 });
+
+test('site acorda o robô das fotos quando ele some (no horário, no máximo 1 pedido a cada 15 min)', async () => {
+  const { acordarRobo } = await import('../src/fotos.js');
+  const { criarKvMemoria } = await import('../scripts/kv-memoria.mjs');
+  const kv = criarKvMemoria();
+  const pedidos = [];
+  const buscar = async (u, op) => {
+    pedidos.push({ u, op });
+    return new Response(null, { status: 204 });
+  };
+  const env = { GITHUB_TOKEN: 'tk' };
+  const quinta13h = Date.parse('2026-10-29T16:00:00Z'); // 13h em Brasília
+  assert.equal(await acordarRobo(kv, {}, quinta13h, buscar), 'sem GITHUB_TOKEN');
+  assert.equal(await acordarRobo(kv, env, Date.parse('2026-10-29T23:00:00Z'), buscar), 'fora do horário');
+  assert.equal(await acordarRobo(kv, env, Date.parse('2026-10-31T16:00:00Z'), buscar), 'fora do horário'); // sábado
+  assert.equal(await acordarRobo(kv, env, quinta13h, buscar), 'acordado');
+  assert.match(pedidos[0].u, /\/repos\/cadastro-creator\/SugesconTv\/actions\/workflows\/fotos\.yml\/dispatches$/);
+  assert.equal(pedidos[0].op.headers.Authorization, 'Bearer tk');
+  assert.deepEqual(JSON.parse(pedidos[0].op.body), { ref: 'main' });
+  assert.equal(await acordarRobo(kv, env, quinta13h + 5 * 60000, buscar), 'já pedido');
+  await kv.put('fotos:robo', new Date(quinta13h + 20 * 60000).toISOString());
+  assert.equal(await acordarRobo(kv, env, quinta13h + 30 * 60000, buscar), 'robô ativo');
+  assert.equal(await acordarRobo(kv, env, quinta13h + 50 * 60000, buscar), 'acordado');
+  assert.equal(pedidos.length, 2);
+});
