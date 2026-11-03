@@ -1,0 +1,41 @@
+# Verifica o site por fora: cotações (atualizadas ou atrasadas), fotos do modo imagem
+# (horário da última foto) e se a fonte das cotações responde. Não mostra links nem dados.
+name: Diagnóstico do site
+
+on:
+  workflow_dispatch:
+    inputs:
+      tela:
+        description: 'Código da tela para conferir as fotos (opcional)'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE: ${{ vars.SITE_URL || 'https://sugescontv.pages.dev' }}
+      TELA: ${{ inputs.tela }}
+    steps:
+      - name: Cotações (/api/cotacoes)
+        run: |
+          echo "Agora (UTC): $(date -u +%FT%TZ)"
+          curl -sS -m 30 -o c.json -w 'HTTP %{http_code} em %{time_total}s\n' "$SITE/api/cotacoes?ativos=cobre,aluminio,dolar" || true
+          jq -c '{atualizadoEm, atrasado, dolar, ativos: [.ativos[]? | {id, preco, ultimoDia: (.historico[-1].t / 1000 | todate)}], erro}' c.json || head -c 300 c.json
+      - name: Fonte das cotações (Yahoo) vista do GitHub
+        run: |
+          for s in HG%3DF ALI%3DF USDBRL%3DX; do
+            curl -sS -m 20 -A 'Mozilla/5.0' -o y.json -w "$s HTTP %{http_code}\n" "https://query1.finance.yahoo.com/v8/finance/chart/$s?range=1mo&interval=1d" || true
+            jq -c '{preco: .chart.result[0].meta.regularMarketPrice, hora: (.chart.result[0].meta.regularMarketTime | todate)}' y.json 2>/dev/null || head -c 200 y.json; echo
+          done
+      - name: Fotos do modo imagem
+        if: env.TELA != ''
+        run: |
+          curl -sS -m 30 -o t.json -w 'tela HTTP %{http_code}\n' "$SITE/api/tv/$TELA" || true
+          for c in $(jq -r '.itens[]?.paginas[]?.foto // empty' t.json | sort -u); do
+            em=$(curl -sS -m 30 -o /dev/null -D - "$SITE/api/foto/$c" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-foto-em"{print $2} /^HTTP/{s=$2} END{if(!s)s="?"}')
+            echo "foto $c: ${em:-sem foto}"
+          done
