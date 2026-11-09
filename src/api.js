@@ -194,7 +194,7 @@ export async function tratar(req, env, opcoes = {}) {
 
   if (!kv) return falha(500, 'Armazenamento não configurado: ligue um namespace KV com o nome PAINEL_KV ao projeto.');
 
-  // Cotações de metais e dólar (público; guardadas por 10 min no cache do Cloudflare).
+  // Cotações de metais e dólar (público; guardadas por 1 min no cache do Cloudflare).
   if (caminho === '/api/cotacoes') {
     if (metodo !== 'GET') return falha(405, 'Método não permitido.');
     const ids = lerLista(url.searchParams.get('ativos'));
@@ -219,7 +219,7 @@ export async function tratar(req, env, opcoes = {}) {
       if (!dados) return falha(502, 'Cotações indisponíveis no momento. Tentando de novo em instantes.');
       dados.atrasado = true;
     }
-    const resp = json(dados, 200, { 'Cache-Control': dados.atrasado ? 'no-store' : 'public, max-age=600' });
+    const resp = json(dados, 200, { 'Cache-Control': dados.atrasado ? 'no-store' : 'public, max-age=60' });
     if (cache && !dados.atrasado) await cache.put(chaveCache, resp.clone());
     return resp;
   }

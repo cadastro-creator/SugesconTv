@@ -65,7 +65,7 @@ A TV mostra todas as páginas do item 1, depois todas as do item 2, e assim por 
 **Sites e cotações**
 - Qualquer endereço `https://` que permita exibição dentro de outro site.
 - Use os **Modelos prontos** (dólar, euro, Ibovespa, bitcoin, quadro de cotações — widgets do TradingView em pt-BR).
-- **Cobre e alumínio em tonelada:** modelos “Cobre e Alumínio (US$/t e R$/t)”. É uma tela do próprio SugesconTv (`/cotacoes?ativos=cobre,aluminio,dolar`) com os preços de referência dos contratos futuros da COMEX (cobre convertido de libra para tonelada; R$/t pelo dólar do dia), gráfico de 1 mês e variação do dia. Atualiza a cada 10 min.
+- **Cobre e alumínio em tonelada:** modelos “Cobre e Alumínio (US$/t e R$/t)”. É uma tela do próprio SugesconTv (`/cotacoes?ativos=cobre,aluminio,dolar`) com os preços de referência dos contratos futuros da COMEX (cobre convertido de libra para tonelada; R$/t pelo dólar do dia), gráfico de 1 mês e variação do dia. Atualiza a cada 1 min (a TV recarrega a página sozinha se ficar 15 min sem cotação nova).
 
 ## Modo imagem (fotos) — páginas pesadas sem pesar a TV
 

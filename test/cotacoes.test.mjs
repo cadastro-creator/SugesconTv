@@ -31,7 +31,7 @@ test('API /api/cotacoes: pública e usa a última cotação boa se a fonte cair'
   const pedir = (buscar) => tratar(new Request('https://painel.exemplo.com/api/cotacoes?ativos=cobre'), env, { buscar });
   const ok = await pedir(buscarFalso());
   assert.equal(ok.status, 200);
-  assert.match(ok.headers.get('cache-control'), /max-age=600/);
+  assert.match(ok.headers.get('cache-control'), /max-age=60/);
   const dados = await ok.json();
   assert.equal(dados.ativos[0].id, 'cobre');
   const reserva = await pedir(buscarFalso(true));

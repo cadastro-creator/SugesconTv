@@ -3,12 +3,13 @@
 # O GitHub atrasa ou pula muitos agendamentos, então cada execução fica ligada em
 # ciclo (fotos a cada 15 min, por até ~5h40) e os agendamentos só servem para
 # religar o ciclo quando ele termina. Execuções novas esperam a atual acabar.
+# Muitos agendamentos (a cada ~10 min) porque o GitHub descarta boa parte deles.
 # Também dá para rodar na hora: Actions → "Fotos do modo imagem" → Run workflow.
 name: Fotos do modo imagem
 
 on:
   schedule:
-    - cron: '7,22,37,52 10-21 * * 1-5'
+    - cron: '3,13,23,33,43,53 10-21 * * 1-5'
   workflow_dispatch:
 
 permissions:

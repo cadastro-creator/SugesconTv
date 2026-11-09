@@ -23,8 +23,23 @@ export function lerLista(texto) {
 }
 
 // Série diária de 1 mês: [{ t: milissegundos, v: preço }]
+const HOSTS = ['query1.finance.yahoo.com', 'query2.finance.yahoo.com'];
+
+// Tenta os dois servidores do Yahoo: se um recusar (bloqueio/limite), o outro costuma responder.
 async function serie(simbolo, buscar) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(simbolo)}?range=1mo&interval=1d`;
+  let erro;
+  for (const host of HOSTS) {
+    try {
+      return await serieEm(host, simbolo, buscar);
+    } catch (e) {
+      erro = e;
+    }
+  }
+  throw erro;
+}
+
+async function serieEm(host, simbolo, buscar) {
+  const url = `https://${host}/v8/finance/chart/${encodeURIComponent(simbolo)}?range=1mo&interval=1d`;
   const controle = new AbortController();
   const relogio = setTimeout(() => controle.abort(), 8000);
   try {

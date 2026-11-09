@@ -2,7 +2,9 @@
 (function () {
   'use strict';
 
-  var ATUALIZAR_MS = 10 * 60000;
+  var ATUALIZAR_MS = 60000;
+  var LIMITE_RECARGA_MS = 15 * 60000; // sem dado novo por tanto tempo: recarrega a página
+  var ultimoOk = new Date().getTime();
   var NS = 'http://www.w3.org/2000/svg';
   var CORES = { cobre: '#f5a623', aluminio: '#7fd3ea', dolar: '#2ecc71' };
   var ultimo = null;
@@ -144,13 +146,14 @@
 
   function buscar() {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/api/cotacoes?ativos=' + encodeURIComponent(parametro('ativos') || 'cobre,aluminio,dolar'), true);
+    xhr.open('GET', '/api/cotacoes?ativos=' + encodeURIComponent(parametro('ativos') || 'cobre,aluminio,dolar') + '&_=' + new Date().getTime(), true);
     xhr.timeout = 20000;
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
       if (xhr.status === 200) {
         try {
           ultimo = JSON.parse(xhr.responseText);
+          if (!ultimo.atrasado) ultimoOk = new Date().getTime();
           desenhar(ultimo);
           return;
         } catch (e) {
@@ -158,11 +161,23 @@
         }
       }
       aviso('Cotações indisponíveis no momento. Tentando de novo…');
-      setTimeout(buscar, 60000);
+    };
+    xhr.ontimeout = xhr.onerror = function () {
+      aviso('Cotações indisponíveis no momento. Tentando de novo…');
     };
     xhr.send();
   }
 
+  function ciclo() {
+    // Cotação parada há muito tempo (TV com cronômetro travado, fonte fora do ar): recarrega a página.
+    if (new Date().getTime() - ultimoOk > LIMITE_RECARGA_MS) {
+      ultimoOk = new Date().getTime();
+      window.location.reload();
+      return;
+    }
+    buscar();
+  }
+
   buscar();
-  setInterval(buscar, ATUALIZAR_MS);
+  setInterval(ciclo, ATUALIZAR_MS);
 })();
