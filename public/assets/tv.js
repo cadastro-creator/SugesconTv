@@ -6,7 +6,17 @@
   var VERSAO_MS = 5 * 60000; // confere se o site foi atualizado
   var INICIO = new Date().getTime();
 
-  function reiniciar() {
+  // forte: no app da TV, reinicia o app inteiro (limpa também os gráficos travados do WebView);
+  // no navegador, ou em app antigo, só recarrega a página.
+  function reiniciar(forte) {
+    try {
+      if (forte && window.SugesconApp && window.SugesconApp.reiniciarApp) {
+        window.SugesconApp.reiniciarApp();
+        return;
+      }
+    } catch (e) {
+      /* cai no recarregamento simples */
+    }
     window.location.reload();
   }
 
@@ -323,7 +333,7 @@
     // Reinício diário às 4h (limpa a memória da TV), se estiver aberta há mais de 12 h.
     function conferirReinicioDiario() {
       var d = new Date();
-      if (d.getHours() === 4 && d.getTime() - INICIO > 12 * 3600000 && !semConexao()) reiniciar();
+      if (d.getHours() === 4 && d.getTime() - INICIO > 12 * 3600000 && !semConexao()) reiniciar(true);
     }
 
     function buscar() {
@@ -350,7 +360,7 @@
             log('reiniciando (pedido do painel)');
             enviarRegistro();
             gravarCache(chaveCache, xhr.responseText);
-            reiniciar();
+            reiniciar(true);
             return;
           }
           gravarCache(chaveCache, xhr.responseText);
