@@ -10,6 +10,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import androidx.webkit.ScriptHandler;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
@@ -34,6 +35,9 @@ public class MainActivity extends Activity {
     private static final String ESCONDER_WEBGPU =
             "(function(){try{if(self.Navigator&&Object.getOwnPropertyDescriptor(Navigator.prototype,'gpu'))"
                     + "{delete Navigator.prototype.gpu;}}catch(e){}})();";
+    /** Momento em que este processo do app começou (evita reinícios em sequência). */
+    private static final long INICIO_PROCESSO = System.currentTimeMillis();
+
     private final long[] toquesVoltar = new long[3];
     private int indiceVoltar = 0;
 
@@ -76,6 +80,7 @@ public class MainActivity extends Activity {
         cookies.setAcceptThirdPartyCookies(web, true);
         aplicarAgente();
         aplicarSemWebGpu();
+        web.addJavascriptInterface(new Ponte(), "SugesconApp");
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -132,6 +137,39 @@ public class MainActivity extends Activity {
         handler.removeCallbacksAndMessages(null);
         if (web != null) web.destroy();
         super.onDestroy();
+    }
+
+    /** Chamada pela página da TV ("Reiniciar TVs" e reinício das 4h). */
+    private class Ponte {
+        @JavascriptInterface
+        public void reiniciarApp() {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    reiniciarProcesso();
+                }
+            });
+        }
+    }
+
+    /**
+     * Reinício de verdade: abre o app de novo e encerra o processo atual, o que também derruba o
+     * processo de gráficos do WebView (recarregar só a página mantém gráficos travados).
+     */
+    private void reiniciarProcesso() {
+        if (System.currentTimeMillis() - INICIO_PROCESSO < 60000) {
+            web.loadUrl(Config.urlTv(this)); // acabou de abrir: só recarrega
+            return;
+        }
+        Intent i = new Intent(this, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Runtime.getRuntime().exit(0);
+            }
+        }, 400);
     }
 
     /** Liga/desliga o script que esconde o WebGPU, conforme os ajustes. */

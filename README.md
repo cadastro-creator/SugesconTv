@@ -40,7 +40,7 @@ Pronto: o painel fica em `https://<seu-projeto>.pages.dev/admin`. Cada commit no
 5. Ajuste os **segundos** de cada página (padrão 30 s) e **recarregar a cada X minutos** (padrão 10, mínimo 5 — recarregar mais que isso sobrecarrega a TV).
 6. Confira na **prévia** (16:9 ou 9:16) e em **Prévia da sequência** (5 s por página).
 7. **Salvamento:** tudo é salvo sozinho. O selo no topo mostra a situação: amarelo = salvando, verde = “Tudo salvo às HH:MM”, vermelho = não salvou (tenta de novo sozinho; há também o botão **Salvar agora**). As TVs buscam mudanças a cada 30 s e aplicam ao fim da página que está na tela (até 1 minuto).
-8. **Reiniciar TVs:** botão no topo do editor que recarrega a página em todas as TVs daquela tela (em até 30 s). As TVs também recarregam sozinhas quando o site é atualizado e todo dia às 4h.
+8. **Reiniciar TVs:** botão no topo do editor que recarrega a página em todas as TVs daquela tela (em até 30 s). No app da TV (a partir da próxima versão) ele reinicia o app inteiro, o que também destrava gráficos que não carregaram; no navegador só recarrega a página. As TVs também recarregam sozinhas quando o site é atualizado e todo dia às 4h.
 
 Na lista de telas aparecem o **código**, o **link da TV** (`/tv?tela=CODIGO`) e um **QR code** desse link.
 
