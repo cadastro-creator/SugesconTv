@@ -293,7 +293,7 @@ function situacaoFoto(url) {
     titulo = 'Horário da foto que a TV está mostrando.';
   } else if (estado.fotos && url in estado.fotos) {
     texto = '⏳ aguardando 1ª foto';
-    titulo = 'O robô tira a foto em até 15 min (seg–sex, 7h–19h). Até lá, a TV mostra a página ao vivo.';
+    titulo = 'O robô tira a foto em até 10 min (seg–sex, 7h–19h). Até lá, a TV mostra a página ao vivo.';
   }
   return h('span', { class: 'situacao-foto', 'data-url': url, title: titulo }, texto);
 }
@@ -468,7 +468,7 @@ function desenharItens() {
           item.pausado ? h('strong', {}, 'Pausado: não aparece na TV.') : null,
           h(
             'label',
-            { class: 'modo-imagem', title: 'A TV mostra uma foto da página, tirada a cada 15 min (seg–sex, 7h–19h). Mais leve; sem tempo real.' },
+            { class: 'modo-imagem', title: 'A TV mostra uma foto da página, tirada a cada 10 min (seg–sex, 7h–19h). Mais leve; sem tempo real.' },
             h('input', {
               type: 'checkbox',
               checked: item.paginas.every((p) => p.imagem),
@@ -538,7 +538,7 @@ function desenharItens() {
               ),
               h(
                 'label',
-                { class: 'modo-imagem', title: 'Modo imagem: a TV mostra uma foto desta página, tirada a cada 15 min.' },
+                { class: 'modo-imagem', title: 'Modo imagem: a TV mostra uma foto desta página, tirada a cada 10 min.' },
                 h('input', {
                   type: 'checkbox',
                   checked: pg.imagem === true,

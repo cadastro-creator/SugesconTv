@@ -1,6 +1,6 @@
 // Robô do modo imagem: abre as páginas marcadas como "Modo imagem" num Chrome de verdade
 // (1920x1080), espera os gráficos montarem, tira uma foto e envia ao SugesconTv.
-// Roda no GitHub Actions a cada 15 min (.github/workflows/fotos.yml).
+// Roda no GitHub Actions a cada 10 min (.github/workflows/fotos.yml).
 // Variáveis: SITE_URL (padrão https://sugescontv.pages.dev), FOTOS_TOKEN (chave mostrada no painel).
 // O repositório é público: o registro da execução NÃO mostra os links dos relatórios.
 import { chromium } from 'playwright-core';
