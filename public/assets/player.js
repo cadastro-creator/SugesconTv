@@ -163,6 +163,20 @@
     this.pos = -1;
   };
 
+  // Vídeos do YouTube congelam quando a TV desliga/liga com o app aberto (a página fica oculta e o
+  // vídeo pausa, sem controles para retomar). Ao voltar, recarrega só os iframes do YouTube.
+  PainelPlayer.prototype.reanimarVideos = function () {
+    for (var url in this.quadros) {
+      if (!this.quadros.hasOwnProperty(url) || !/^https:\/\/www\.youtube\.com\/embed\//.test(url)) continue;
+      var q = this.quadros[url];
+      if (!q.el || q.novo) continue;
+      this._ev('video-reanimado', url);
+      try {
+        q.el.src = url;
+      } catch (e) {}
+    }
+  };
+
   PainelPlayer.prototype._ev = function (tipo, url, extra) {
     if (this.op.aoEvento) this.op.aoEvento(tipo + ' ' + (url || '').slice(0, 120) + (extra ? ' ' + extra : ''));
   };

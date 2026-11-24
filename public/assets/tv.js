@@ -379,6 +379,20 @@
     }
 
     if (cache) aplicar(cache);
+    // Ao voltar da TV desligada (ou da rede caída), retoma os vídeos do YouTube, que ficam congelados.
+    var ocultoDesde = 0;
+    document.addEventListener(
+      'visibilitychange',
+      function () {
+        if (document.visibilityState === 'hidden') ocultoDesde = new Date().getTime();
+        else if (ocultoDesde && new Date().getTime() - ocultoDesde > 5000) {
+          ocultoDesde = 0;
+          player.reanimarVideos();
+        }
+      },
+      false
+    );
+    window.addEventListener('online', function () { player.reanimarVideos(); }, false);
     player.iniciar();
     buscar();
     setInterval(buscar, CONSULTA_MS);
