@@ -124,3 +124,22 @@ test('Modelos de cobre e alumínio em toneladas e cotação personalizada', () =
   assert.equal(modeloCotacao('<script>').ok, false);
   assert.equal(modeloCotacao('').ok, false);
 });
+
+test('YouTube: converte watch, youtu.be, shorts e embed para o formato incorporado', () => {
+  const esperado =
+    'https://www.youtube.com/embed/d_-ZbgbFFbs?autoplay=1&mute=1&loop=1&playlist=d_-ZbgbFFbs&controls=0&rel=0&playsinline=1';
+  for (const l of [
+    'https://www.youtube.com/watch?v=d_-ZbgbFFbs',
+    'https://youtu.be/d_-ZbgbFFbs?si=abc',
+    'https://m.youtube.com/watch?v=d_-ZbgbFFbs&t=10s',
+    'https://www.youtube.com/shorts/d_-ZbgbFFbs',
+    'https://www.youtube.com/embed/d_-ZbgbFFbs'
+  ]) {
+    const r = analisarLink(l);
+    assert.equal(r.ok, true, l);
+    assert.equal(r.url, esperado, l);
+    assert.equal(r.nome, 'YouTube');
+  }
+  assert.equal(analisarLink('https://www.youtube.com/playlist?list=PL123').ok, false);
+  assert.equal(analisarLink('https://www.youtube.com/').ok, false);
+});

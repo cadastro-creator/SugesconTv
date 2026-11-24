@@ -131,6 +131,31 @@ function planilha(u, base) {
   return erro(MSG_PLANILHA_PUBLICAR);
 }
 
+const HOSTS_YOUTUBE = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtube-nocookie.com', 'www.youtube-nocookie.com', 'youtu.be'];
+const ID_YOUTUBE = /^[A-Za-z0-9_-]{11}$/;
+
+// Converte link de vídeo do YouTube (watch?v=, youtu.be/, shorts/, live/, embed/) para o formato
+// incorporado, sem som (exigência do navegador para iniciar sozinho), sem controles e em repetição.
+function youtube(u) {
+  const host = u.hostname.toLowerCase();
+  let id = null;
+  if (host === 'youtu.be') {
+    id = u.pathname.split('/')[1];
+  } else {
+    const m = u.pathname.match(/^\/(?:embed|shorts|live|v)\/([^/?]+)/);
+    id = m ? m[1] : u.pathname === '/watch' ? u.searchParams.get('v') : null;
+  }
+  if (!id || !ID_YOUTUBE.test(id)) {
+    if (u.searchParams.get('list') || u.pathname === '/playlist') {
+      return erro('Links de lista de reprodução não são aceitos. Cole o link de um vídeo (youtube.com/watch?v=...).');
+    }
+    return erro('Não reconheci este link do YouTube. Abra o vídeo e copie o endereço da barra (youtube.com/watch?v=...).');
+  }
+  const url =
+    'https://www.youtube.com/embed/' + id + '?autoplay=1&mute=1&loop=1&playlist=' + id + '&controls=0&rel=0&playsinline=1';
+  return { ok: true, tipo: 'site', nome: 'YouTube', url, pagina: null };
+}
+
 // Analisa um link colado. "base" é a primeira página do item quando o
 // usuário está adicionando outra página do mesmo relatório.
 export function analisarLink(texto, base) {
@@ -143,6 +168,7 @@ export function analisarLink(texto, base) {
   if (!v.ok) return v;
   const u = v.url;
   const host = u.hostname.toLowerCase();
+  if (HOSTS_YOUTUBE.includes(host)) return youtube(u);
   if (HOSTS_LOOKER.includes(host)) return looker(u, base);
   if (host === 'app.powerbi.com' || host.endsWith('.powerbi.com')) return powerbi(u, base);
   if (host === 'docs.google.com' && u.pathname.startsWith('/spreadsheets/')) return planilha(u, base);
