@@ -47,7 +47,8 @@
     var el = document.createElement('iframe');
     el.className = 'pnt-quadro';
     el.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups-to-escape-sandbox');
-    el.setAttribute('referrerpolicy', 'no-referrer');
+    // O YouTube recusa a incorporação (erro 153) se não receber a origem; só ele recebe.
+    el.setAttribute('referrerpolicy', /^https:\/\/www\.youtube\.com\/embed\//.test(url) ? 'strict-origin-when-cross-origin' : 'no-referrer');
     el.setAttribute('allow', 'autoplay; fullscreen');
     el.setAttribute('scrolling', 'no');
     el.setAttribute('frameborder', '0');
