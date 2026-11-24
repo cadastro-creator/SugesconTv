@@ -270,6 +270,7 @@
         }
       },
       offline: semConexao,
+      sondaYoutube: registrando,
       aoEvento: log,
       aoVazio: function (vazio) {
         if (vazio && naoEncontrada) mensagem('Tela "' + codigo + '" não encontrada. Confira o código no painel de gestão.');
@@ -379,6 +380,39 @@
     }
 
     if (cache) aplicar(cache);
+    // Registro ligado: pergunta ao player do YouTube qual qualidade está tocando e anota no log.
+    var ultimaQualidadeYt = '';
+    window.addEventListener(
+      'message',
+      function (e) {
+        if (e.origin !== 'https://www.youtube.com' || typeof e.data !== 'string') return;
+        var d;
+        try {
+          d = JSON.parse(e.data);
+        } catch (x) {
+          return;
+        }
+        var q = d && d.info && d.info.playbackQuality;
+        if (d && d.event === 'infoDelivery' && q && q !== ultimaQualidadeYt) {
+          ultimaQualidadeYt = q;
+          var f = document.getElementsByTagName('iframe');
+          var tam = '';
+          for (var k = 0; k < f.length; k++) if (/youtube\.com\/embed/.test(f[k].src) && f[k].clientWidth) tam = ' (quadro ' + f[k].clientWidth + 'x' + f[k].clientHeight + ')';
+          log('youtube qualidade ' + q + tam);
+        }
+      },
+      false
+    );
+    setInterval(function () {
+      if (!registrando()) return;
+      var f = document.getElementsByTagName('iframe');
+      for (var k = 0; k < f.length; k++) {
+        if (!/youtube\.com\/embed/.test(f[k].src)) continue;
+        try {
+          f[k].contentWindow.postMessage('{"event":"listening","id":1,"channel":"widget"}', 'https://www.youtube.com');
+        } catch (x) {}
+      }
+    }, 5000);
     // Ao voltar da TV desligada (ou da rede caída), retoma os vídeos do YouTube, que ficam congelados.
     var ocultoDesde = 0;
     document.addEventListener(

@@ -43,7 +43,7 @@
   }
 
   // Cria o iframe já com o endereço, antes de entrar na página (evita o "load" do about:blank).
-  function novoIframe(palco, url, aoCarregar) {
+  function novoIframe(palco, url, aoCarregar, sonda) {
     var el = document.createElement('iframe');
     el.className = 'pnt-quadro';
     el.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups-to-escape-sandbox');
@@ -58,7 +58,9 @@
       el.onload = null;
       aoCarregar(el);
     };
-    el.src = url;
+    // Com o registro ligado, o YouTube passa a informar a qualidade do vídeo (vai para o log da TV).
+    var yt = /^https:\/\/www\.youtube\.com\/embed\//.test(url);
+    el.src = yt && sonda ? url + '&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin) : url;
     palco.appendChild(el);
     return el;
   }
@@ -239,7 +241,7 @@
       if (self.esperando === q) self._mostrarPreparada(q, self.posEsperada);
       else if (self._ehProxima(q) && self.prepararJa) self._preparar(q); // já está na hora de preparar
       self._preaquecer();
-    });
+    }, this.op.sondaYoutube && this.op.sondaYoutube());
   };
 
   // Obtém (ou começa a carregar) o quadro de uma página da sequência.
@@ -317,7 +319,7 @@
       } else {
         trocar(el);
       }
-    });
+    }, this.op.sondaYoutube && this.op.sondaYoutube());
     q.novo = novo;
   };
 
